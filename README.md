@@ -10,6 +10,7 @@ A Next.js project for the Ethical Hacking course — each team builds their modu
 | **TypeScript** | Language — all code must be typed |
 | **Tailwind CSS v4** | Styling |
 | **shadcn/ui** | UI component library (`@/components/ui`) |
+| **Hono** | API framework — all `/api/*` routes via `app/api/[[...route]]/route.ts` |
 | **Turso (SQLite)** | Database — SQLite at the edge |
 | **Drizzle ORM + Drizzle Kit** | Type-safe ORM & migrations |
 
@@ -52,6 +53,7 @@ bun dev
 
 ```
 app/
+  api/[[...route]]/route.ts  # ★ Hono — single API entry (see Auth-Api). DO NOT create Next Route Handlers
   layout.tsx          # root layout — DO NOT EDIT
   page.tsx            # landing page — DO NOT EDIT
   globals.css         # global Tailwind styles — DO NOT EDIT
@@ -142,13 +144,17 @@ lib/other-team/helper.ts # don't touch other team's code
 - Turso client is at `lib/turso.ts` / `lib/db.ts` — just import `db` :
 
 ```ts
-import { db } from "@/lib/turso"; // or @/lib/db depending on setup
+// Hono handler (use this — not Next Route Handlers):
+import { Hono } from "hono";
+import { db } from "@/lib/turso";
 import { users } from "@/lib/schema";
 
-export async function GET() {
+const app = new Hono().basePath("/api");
+app.get("/users", async (c) => {
   const rows = await db.select().from(users);
-  return Response.json(rows);
-}
+  return c.json(rows);
+});
+// see app/api/[[...route]]/route.ts + https://github.com/real-zephex/Auth-Api
 ```
 
 - After editing `lib/schema.ts`, run:
@@ -164,6 +170,46 @@ This generates the migration, applies it, and pushes to Turso in one go.
 ```bash
 bunx drizzle-kit studio
 ```
+
+## API — Hono (Not Next.js Route Handlers)
+
+> **All API routes are Hono.** Do not create `app/api/<x>/route.ts` Next.js handlers. Define routes in `app/api/[[...route]]/route.ts` via `new Hono().basePath("/api")` + `handle(app)`.
+
+Central file is already configured (`hono`, `hono/vercel`, `hono/cors`, `hono/logger`, `hono/cookie`) — see `app/api/[[...route]]/route.ts`:
+
+```ts
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+
+const app = new Hono().basePath("/api");
+app.use(logger());
+app.use("/*", cors({ origin: "*", credentials: true }));
+app.get("/hello", (c) => c.json({ message: "hello world" }));
+export const GET = handle(app);
+export const POST = handle(app);
+```
+
+**Add your team routes there (coordinate with `team/auth`):**
+
+```ts
+// inside app/api/[[...route]]/route.ts — after base setup
+import { zValidator } from "@hono/zod-validator"; // or manual safeParse
+import { createPostSchema } from "@/lib/<your-module>/schema";
+
+app.post("/<your-module>/create", async (c) => {
+  // Auth is placeholder — provided by team/auth, see SECURITY.md
+  const user = await requireRole(c, ["editor"]); // <- from lib/auth/guard (team/auth)
+  const raw = await c.req.json();
+  const parsed = createPostSchema.safeParse(raw);
+  if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  await db.insert(posts).values({ ...parsed.data, ownerId: user.userId });
+  return c.json({ ok: true }, 201);
+});
+```
+
+> For auth (`/register`, `/login`, JWT, cookies, hashing), **take inspiration from [`real-zephex/Auth-Api`](https://github.com/real-zephex/Auth-Api)** — see `Auth-Api/src/index.ts` (Hono + `bcryptjs` + `jose` + `hono/cookie`) and `Auth-Api/lib/auth/jwt.ts`. Auth-Api uses `hash(password, 10)` + `SignJWT({email}).setExpirationTime("7d")` + `setCookie(c, "auth_token", token, { httpOnly:true, secure:true, sameSite:"Lax" })` — copy that shape.
 
 ## Styling & UI
 

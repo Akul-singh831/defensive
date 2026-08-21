@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { DemoForm } from "@/components/demo-form";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -37,6 +38,7 @@ import {
   Boxes,
   FilePlus2,
   Ban,
+  Sparkles,
 } from "lucide-react";
 
 function CopyButton({ text }: { text: string }) {
@@ -189,7 +191,7 @@ export default function Home() {
         </div>
 
         {/* Tech stack */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
           {[
             {
               icon: Palette,
@@ -208,6 +210,12 @@ export default function Home() {
               label: "TypeScript",
               sub: "strict • typed",
               accent: "from-blue-600/10 to-indigo-600/10",
+            },
+            {
+              icon: Zap,
+              label: "Hono",
+              sub: "API • [[...route]]",
+              accent: "from-orange-500/10 to-amber-500/10",
             },
             {
               icon: Database,
@@ -236,15 +244,14 @@ export default function Home() {
               </CardHeader>
             </Card>
           ))}
-          <div className="col-span-2 md:col-span-4">
+          <div className="col-span-2 md:col-span-5">
             <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-100">
               <TriangleAlert className="h-4 w-4 text-amber-600" />
               <AlertTitle className="text-xs font-semibold tracking-wide uppercase">
                 Stack lock
               </AlertTitle>
               <AlertDescription className="text-xs md:text-sm leading-6">
-                Do not introduce any other styling / UI / database libraries
-                without prior approval.
+                Do not introduce other styling / UI / database libraries. All <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">/api/*</code> via Hono in <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">app/api/[[...route]]/route.ts</code> — don&apos;t create Next Route Handlers.
               </AlertDescription>
             </Alert>
           </div>
@@ -467,16 +474,16 @@ npm run dev`}
                 </p>
                 <CodeBlock
                   lang="ts"
-                  code={`import { db } from "@/lib/turso";
+                  code={`// Hono handler (not Next Route Handler)
+import { Hono } from "hono";
+import { db } from "@/lib/turso";
 import { users } from "@/lib/schema";
-
-export async function GET() {
+const app = new Hono().basePath("/api");
+app.get("/users", async (c) => {
   const rows = await db.select().from(users);
-  return Response.json(rows);
-}
-
-// after editing schema:
- // bun run db:sync`}
+  return c.json(rows);
+});
+// see app/api/[[...route]]/route.ts + Auth-Api/src/index.ts`}
                 />
               </CardContent>
             </Card>
@@ -611,7 +618,7 @@ export async function GET() {
                   <CardTitle className="text-xs font-mono flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-red-600" /> 1. No Global Functions</CardTitle>
                 </CardHeader>
                 <CardContent className="text-xs leading-6 text-muted-foreground">
-                  Never export a raw <code className="font-mono bg-muted px-1 py-0.5 rounded">db.*</code> call callable from the client. Every sensitive function must start with <code className="font-mono bg-muted px-1 py-0.5 rounded">requireAuth() → requireRole([...])</code> → validate → query — <span className="font-semibold text-foreground">placeholder, provided by <code className="font-mono bg-muted px-1 py-0.5 rounded">team/auth</code> via <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/guard</code></span>. <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/turso.ts</code> only in Server Components / <code className="font-mono bg-muted px-1 py-0.5 rounded">"use server"</code>.
+                  Never export a raw <code className="font-mono bg-muted px-1 py-0.5 rounded">db.*</code> call callable from the client. Every sensitive function must start with <code className="font-mono bg-muted px-1 py-0.5 rounded">requireAuth() → requireRole([...])</code> → validate → query — <span className="font-semibold text-foreground">placeholder, provided by <code className="font-mono bg-muted px-1 py-0.5 rounded">team/auth</code> via <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/guard</code></span>. <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/turso.ts</code> only inside <code className="font-mono bg-muted px-1 py-0.5 rounded">app/api/[[...route]]/route.ts</code> Hono handlers (via <code className="font-mono bg-muted px-1 py-0.5 rounded">handle(app)</code>). Don&apos;t create Next Route Handlers.
                 </CardContent>
               </Card>
               <Card className="border-red-200 dark:border-red-900 bg-white dark:bg-zinc-900 shadow-sm">
@@ -619,7 +626,7 @@ export async function GET() {
                   <CardTitle className="text-xs font-mono flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-red-600" /> 2. JWT — No OAuth Needed</CardTitle>
                 </CardHeader>
                 <CardContent className="text-xs leading-6 text-muted-foreground">
-                  Use <code className="font-mono bg-muted px-1 py-0.5 rounded">jose</code> JWT <code className="font-mono bg-muted px-1 py-0.5 rounded">{"{userId, role}"}</code> in <code className="font-mono bg-muted px-1 py-0.5 rounded">httpOnly</code> cookies — not <code className="font-mono bg-muted px-1 py-0.5 rounded">localStorage</code>. <span className="font-semibold text-foreground">Placeholders — <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/jwt.ts</code>, <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/guard.ts</code>, <code className="font-mono bg-muted px-1 py-0.5 rounded">JWT_SECRET</code> owned by <code className="font-mono bg-muted px-1 py-0.5 rounded">team/auth</code>.</span> Other teams: just <code className="font-mono bg-muted px-1 py-0.5 rounded">import &#123; requireRole &#125; from &quot;@/lib/auth/guard&quot;</code> once it lands — don&apos;t duplicate. You can troll your own JWT for learning in <code className="font-mono bg-muted px-1 py-0.5 rounded">app/demo/*</code> only.
+                  Use <code className="font-mono bg-muted px-1 py-0.5 rounded">jose</code> JWT <code className="font-mono bg-muted px-1 py-0.5 rounded">{"{email, role}"}</code> in <code className="font-mono bg-muted px-1 py-0.5 rounded">httpOnly</code> <code className="font-mono bg-muted px-1 py-0.5 rounded">auth_token</code> cookies via <code className="font-mono bg-muted px-1 py-0.5 rounded">hono/cookie</code> — not <code className="font-mono bg-muted px-1 py-0.5 rounded">localStorage</code>. <span className="font-semibold text-foreground">Placeholders — <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/jwt.ts</code>, <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/guard.ts</code>, <code className="font-mono bg-muted px-1 py-0.5 rounded">JWT_SECRET</code> owned by <code className="font-mono bg-muted px-1 py-0.5 rounded">team/auth</code>.</span> Take inspiration from <a href="https://github.com/real-zephex/Auth-Api" target="_blank" rel="noreferrer" className="underline decoration-dotted">real-zephex/Auth-Api</a> (<code className="font-mono bg-muted px-1 py-0.5 rounded">src/index.ts</code> + <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/jwt.ts</code>). Other teams: just <code className="font-mono bg-muted px-1 py-0.5 rounded">import &#123; requireRole &#125; from &quot;@/lib/auth/guard&quot;</code> once it lands.
                 </CardContent>
               </Card>
               <Card className="border-red-200 dark:border-red-900 bg-white dark:bg-zinc-900 shadow-sm">
@@ -634,17 +641,21 @@ export async function GET() {
 
             <div className="mt-4 rounded-xl border bg-white dark:bg-zinc-900 p-4">
               <div className="text-xs font-semibold flex items-center gap-1.5"><Code2 className="h-3.5 w-3.5" /> Secure edit — copy pattern</div>
-              <pre className="mt-2 overflow-x-auto rounded-lg bg-zinc-950 text-zinc-100 p-3 text-xs font-mono leading-5 border border-zinc-800">{`"use server";
-import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — owned by team/auth
-import { db } from "@/lib/turso";
-import { posts } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+              <pre className="mt-2 overflow-x-auto rounded-lg bg-zinc-950 text-zinc-100 p-3 text-xs font-mono leading-5 border border-zinc-800">{`// app/api/[[...route]]/route.ts — Hono (Auth-Api pattern)
+// All /api/* via single Hono app + handle(app)
+import { Hono } from "hono";
+import { getCookie, setCookie } from "hono/cookie";
+import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — team/auth
+import { createPostSchema } from "@/lib/your-module/schema";
 
-export async function updatePostSecure(postId: number, data: { title: string }) {
-  const user = await requireRole(["admin", "editor"]); // AuthN + AuthZ
-  // + zod validation here
-  return db.update(posts).set(data).where(eq(posts.id, postId));
-}`}</pre>
+const app = new Hono().basePath("/api");
+app.post("/your-module/update", async (c) => {
+  const user = await requireRole(c, ["admin", "editor"]); // via getCookie(c,"auth_token") + jose
+  const parsed = createPostSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  return c.json({ ok: true });
+});
+// see https://github.com/real-zephex/Auth-Api/blob/main/src/index.ts`}</pre>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <Badge variant="secondary" className="font-mono text-[11px]">zod</Badge>
                 <Badge variant="secondary" className="font-mono text-[11px]">react-hook-form</Badge>
@@ -680,7 +691,7 @@ export async function updatePostSecure(postId: number, data: { title: string }) 
           <Badge variant="secondary" className="font-mono text-xs">Follow AuraEdge register pattern</Badge>
         </div>
         <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-3xl">
-          One <code className="font-mono bg-muted px-1 py-0.5 rounded">zod</code> schema, reused client + server. Client resolver is for UX, server <code className="font-mono bg-muted px-1 py-0.5 rounded">safeParse</code> is for security. Copy the exact pattern from <a href="https://raw.githubusercontent.com/real-zephex/auraedge-website/refs/heads/main/app/register/page.tsx" target="_blank" rel="noreferrer" className="underline decoration-dotted">auraedge-website/app/register/page.tsx</a>.
+          One <code className="font-mono bg-muted px-1 py-0.5 rounded">zod</code> schema, reused client + Hono server. Client resolver is for UX, Hono <code className="font-mono bg-muted px-1 py-0.5 rounded">safeParse</code> in <code className="font-mono bg-muted px-1 py-0.5 rounded">app/api/[[...route]]/route.ts</code> is for security. Copy <a href="https://raw.githubusercontent.com/real-zephex/auraedge-website/refs/heads/main/app/register/page.tsx" target="_blank" rel="noreferrer" className="underline decoration-dotted">AuraEdge register</a> + <a href="https://github.com/real-zephex/Auth-Api" target="_blank" rel="noreferrer" className="underline decoration-dotted">Auth-Api/src/index.ts</a>.
         </p>
 
         <div className="mt-6 grid lg:grid-cols-2 gap-4">
@@ -770,18 +781,17 @@ export async function updatePostSecure(postId: number, data: { title: string }) 
             </CardHeader>
             <CardContent>
               <div className="rounded-xl border bg-zinc-950 text-zinc-100 p-3.5 text-xs font-mono leading-5 overflow-x-auto">
-                <div>// app/api/your-module/create/route.ts</div>
-                <div>import &#123; requireRole &#125; from &quot;@/lib/auth/guard&quot;;</div>
+                <div>// app/api/[[...route]]/route.ts — Hono (see Auth-Api/src/index.ts)</div>
+                <div>import &#123; requireRole &#125; from &quot;@/lib/auth/guard&quot;; // placeholder — team/auth</div>
                 <div>import &#123; createPostSchema &#125; from &quot;@/lib/your-module/schema&quot;;</div>
-                <div className="mt-2">export async function POST(req: Request) &#123;</div>
-                <div className="pl-3 text-emerald-400">const user = await requireRole([&quot;admin&quot;]); // AuthN+AuthZ first</div>
-                <div className="pl-3">const raw = await req.json();</div>
+                <div className="mt-2">app.post(&quot;/your-module/create&quot;, async (c) =&gt; &#123;</div>
+                <div className="pl-3 text-emerald-400">const user = await requireRole(c, [&quot;admin&quot;]); // getCookie(c,&quot;auth_token&quot;) + jose</div>
+                <div className="pl-3">const raw = await c.req.json();</div>
                 <div className="pl-3">const parsed = createPostSchema.safeParse(raw);</div>
-                <div className="pl-3">if (!parsed.success)</div>
-                <div className="pl-6">return Response.json(&#123; error: parsed.error.flatten() &#125;, &#123; status: 400 &#125;);</div>
+                <div className="pl-3">if (!parsed.success) return c.json(&#123; error: parsed.error.flatten() &#125;, 400);</div>
                 <div className="pl-3">await db.insert(posts).values(&#123; ...parsed.data, ownerId: user.userId &#125;);</div>
-                <div className="pl-3">return Response.json(&#123; ok: true &#125;);</div>
-                <div>&#125;</div>
+                <div className="pl-3">return c.json(&#123; ok: true &#125;, 201);</div>
+                <div>&#125;);</div>
                 <div className="mt-2 text-zinc-400">// Client zodResolver = UX, server safeParse = security</div>
               </div>
               <Alert className="mt-3 bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-900 py-2">
@@ -801,6 +811,51 @@ export async function updatePostSecure(postId: number, data: { title: string }) 
             <div>• <code className="font-mono bg-background border px-1 py-0.5 rounded">setValue/watch</code> when auto-populating</div>
             <div>• Re-parse with <code className="font-mono bg-background border px-1 py-0.5 rounded">safeParse</code> on server before <code className="font-mono bg-background border px-1 py-0.5 rounded">db</code></div>
           </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6">
+        <Separator />
+      </div>
+
+
+      {/* DEMO — LIVE ZOD + REACT-HOOK-FORM + HONO */}
+      <section id="demo" className="mx-auto max-w-6xl px-6 py-10 md:py-14 scroll-mt-16">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 text-violet-600" /> Live Demo
+        </div>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Try it — validation before & after submit</h2>
+          <Badge variant="outline" className="font-mono text-xs border-violet-200 text-violet-700 dark:border-violet-900 dark:text-violet-300">POST /api/demo/post → {"{ message: \"message received\" }"} </Badge>
+        </div>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-3xl">
+          Fill the fields with anything random — <code className="font-mono bg-muted px-1 py-0.5 rounded">zodResolver</code> (<code className="font-mono bg-muted px-1 py-0.5 rounded">mode: &quot;onChange&quot;</code>) blocks submit until the data is valid. On submit it hits <code className="font-mono bg-muted px-1 py-0.5 rounded">Hono POST /api/demo/post</code>, re-validates with <code className="font-mono bg-muted px-1 py-0.5 rounded">demoPostSchema.safeParse</code>, then replies <span className="font-semibold text-foreground">message received</span>. This is the exact flow your team must copy.
+        </p>
+        <Alert className="mt-4 bg-violet-50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-900">
+          <Shield className="h-4 w-4 text-violet-600" />
+          <AlertTitle className="text-xs font-semibold font-mono">How it mirrors your team code</AlertTitle>
+          <AlertDescription className="text-xs leading-6">
+            <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">lib/demo/schema.ts</code> → one <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">zod</code> schema, <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">z.infer</code> type. Client: <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">useForm(&#123; resolver: zodResolver(schema) &#125;)</code> (<a href="https://raw.githubusercontent.com/real-zephex/auraedge-website/refs/heads/main/app/register/page.tsx" target="_blank" rel="noreferrer" className="underline decoration-dotted">AuraEdge pattern</a>). Server: <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">app/api/[[...route]]/route.ts — app.post(&quot;/demo/post&quot;, ...)</code> (<a href="https://github.com/real-zephex/Auth-Api" target="_blank" rel="noreferrer" className="underline decoration-dotted">Auth-Api/Hono</a>). Replace <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">demoPostSchema</code> with your module schema and add <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">requireRole(c, [...])</code> (placeholder — <code className="font-mono bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">team/auth</code>) in Hono before the DB call.
+          </AlertDescription>
+        </Alert>
+
+        <div className="mt-6">
+          <DemoForm />
+        </div>
+
+        <div className="mt-4 rounded-xl border bg-muted/30 p-4">
+          <div className="text-xs font-semibold flex items-center gap-1.5"><Terminal className="h-3.5 w-3.5" /> Try bypassing the client — Hono still blocks you</div>
+          <pre className="mt-2 overflow-x-auto rounded-lg bg-zinc-950 text-zinc-100 p-3 text-xs font-mono leading-5 border border-zinc-800">{`# invalid — server safeParse rejects (try it!)
+curl -X POST http://localhost:3000/api/demo/post \
+  -H "Content-Type: application/json" \
+  -d '{"email":"bad","message":"hi"}'
+# → {"error":"Validation failed on server","details":{...}}
+
+# valid — message received
+curl -X POST http://localhost:3000/api/demo/post \
+  -H "Content-Type: application/json" \
+  -d '{"fullName":"Ada Lovelace","email":"ada@ltsu.ac.in","team":"team/demo","module":"auth","message":"Hello from demo — this is a valid message!","agreeToTerms":true}'
+# → {"message":"message received","data":{...}}`}</pre>
         </div>
       </section>
 

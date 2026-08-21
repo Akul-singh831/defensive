@@ -46,7 +46,14 @@ export async function requireRole(roles: string[]) {
 ```
 
 ```ts
-// lib/xss/actions.ts — SECURE
+// Hono handler — SECURE (preferred, no Next Route Handlers or Server Actions)
+// app/api/[[...route]]/route.ts — add to the central Hono app
+import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — provided by team/auth
+// app.post("/xss/update", async (c) => { const user = await requireRole(c, ["admin","editor"]); ... })
+```
+
+```ts
+// Alternative: Server Action — allowed but Hono is preferred
 "use server";
 import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — provided by team/auth
 import { db } from "@/lib/turso";
@@ -69,7 +76,7 @@ export async function updatePostSecure(postId: number, data: { title: string }) 
 ```
 
 **Rules:**
-- `lib/turso.ts` / `db` must **never** be imported in a `"use client"` file. Only in Server Components, Route Handlers, or `"use server"` actions.
+- `lib/turso.ts` / `db` must **never** be imported in a `"use client"` file. Only in **Hono handlers** (`app/api/[[...route]]/route.ts` via `handle(app)`) or Server Components. Do not create Next.js Route Handlers (`app/api/<x>/route.ts`).
 - Every exported function that reads/writes sensitive data must call `requireAuth()` or `requireRole([...])` as the **first line**.
 - Helpers that are internal should **not** be exported: `async function hashPassword()` — keep it private.
 
@@ -107,67 +114,79 @@ You **do not** need Google/GitHub OAuth for this project. Use simple **JWT with 
 [Logout]   Clear cookie
 ```
 
-### Minimal Implementation
+### Minimal Implementation (Hono + Auth-Api)
+
+> **Take inspiration from [`real-zephex/Auth-Api`](https://github.com/real-zephex/Auth-Api)** — `src/index.ts` (Hono + `bcryptjs` + `jose` + `hono/cookie`) and `lib/auth/jwt.ts`. Auth-Api already does `hash(password,10)` + `SignJWT({email}).setExpirationTime("7d")` + `setCookie(c, "auth_token", token, { httpOnly:true, secure:true, sameSite:"Lax" })`.
 
 ```ts
 // lib/auth/jwt.ts — PLACEHOLDER — owned by team/auth
-import * as jose from "jose";
+// Auth-Api/lib/auth/jwt.ts uses jose — copy that shape
+import { SignJWT, jwtVerify } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!); // 32+ chars in .env.local
-const alg = "HS256";
+const secret = new TextEncoder().encode(process.env.JWT_SECRET!); // 32+ chars
 
-export async function signJwt(payload: { userId: string; role: string }) {
-  return await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg })
+export async function signToken(payload: { email: string; role?: string }) {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
     .sign(secret);
 }
 
-export async function verifyJwt(token: string) {
-  const { payload } = await jose.jwtVerify(token, secret);
+export async function verifyToken(token: string) {
+  const { payload } = await jwtVerify(token, secret);
   return payload;
 }
 ```
 
 ```ts
-// app/api/auth/login/route.ts
-import { signJwt } from "@/lib/auth/jwt";
-import { verifyPassword } from "@/lib/auth/password";
-import { cookies } from "next/headers";
+// app/api/[[...route]]/route.ts — Hono (single API entry, no Next Route Handlers)
+// See Auth-Api/src/index.ts — all routes go here via handle(app)
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { getCookie, setCookie } from "hono/cookie";
+import { compare, hash } from "bcryptjs";
+import { signToken, verifyToken } from "@/lib/auth/jwt"; // placeholder — team/auth
+import { getUsers, writeUser } from "@/lib/db/functions"; // your Drizzle helpers
 
-export async function POST(req: Request) {
-  const { email, password } = await req.json();
-  const user = await db.query.users.findFirst({ where: eq(users.email, email) });
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    return Response.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-  const token = await signJwt({ userId: String(user.id), role: user.role });
-  (await cookies()).set("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-  return Response.json({ ok: true });
-}
+const app = new Hono().basePath("/api");
+app.use(logger(), cors({ origin: "*", credentials: true }));
+
+app.post("/register", async (c) => {
+  const { email, password } = await c.req.json();
+  if (!email || !password) return c.json({ error: "Email and password are required" }, 400);
+  if (!/\S+@\S+\.\S+/.test(email)) return c.json({ error: "Invalid email format" }, 400);
+  if (password.length < 8) return c.json({ error: "Password must be at least 8 characters long" }, 400);
+  if (await getUsers({ email })) return c.json({ error: "User already exists" }, 400);
+  await writeUser({ email, password: await hash(password, 10) });
+  const token = await signToken({ email });
+  setCookie(c, "auth_token", token, { httpOnly: true, secure: true, sameSite: "Lax", maxAge: 60*60*24*7 });
+  return c.json({ message: "User registered successfully" }, 201);
+});
+
+app.post("/login", async (c) => {
+  const { email, password } = await c.req.json();
+  const user = await getUsers({ email });
+  if (!user || !(await compare(password, user.password))) return c.json({ error: "Invalid credentials" }, 401);
+  const token = await signToken({ email });
+  setCookie(c, "auth_token", token, { httpOnly: true, secure: true, sameSite: "Lax", maxAge: 60*60*24*7 });
+  return c.json({ message: "Logged in successfully" });
+});
+
+app.get("/auth-status", async (c) => {
+  const token = getCookie(c, "auth_token");
+  if (!token) return c.json({ authenticated: false });
+  try { await verifyToken(token); return c.json({ authenticated: true }); }
+  catch { return c.json({ authenticated: false }); }
+});
+
+export const GET = handle(app);
+export const POST = handle(app);
 ```
 
-```ts
-// middleware.ts — optional but recommended
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { verifyJwt } from "@/lib/auth/jwt";
-
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.get("token")?.value;
-  if (!token) return NextResponse.redirect(new URL("/login", req.url));
-  try { await verifyJwt(token); return NextResponse.next(); }
-  catch { return NextResponse.redirect(new URL("/login", req.url)); }
-}
-export const config = { matcher: ["/dashboard/:path*", "/admin/:path*"] };
-```
+> **Auth-Api is the reference** — use `hono/cookie` (`getCookie`/`setCookie`), `jose` for `signToken`/`verifyToken`, and `bcryptjs` for hashing. Do **not** create `app/api/auth/login/route.ts` — everything lives in the single Hono file. `hono/logger` + `hono/cors` are already wired in `app/api/[[...route]]/route.ts`.
 
 **Do not roll your own JWT logic.** `lib/auth/jwt.ts`, `lib/auth/guard.ts`, `lib/auth/password.ts`, and `JWT_SECRET` are owned by `team/auth`. All other teams: **do not create `lib/auth/*`** — import `requireRole`/`requireAuth`/`verifyJwt` once the auth team merges. If you need the helpers urgently, ask the lead for the current placeholder or wait for the PR. Do not duplicate auth logic per team.
 
@@ -370,31 +389,29 @@ export default function CreatePostForm() {
 Even with `zodResolver`, an attacker can `curl` your API. Parse again before Drizzle.
 
 ```ts
-// app/api/<your-module>/create/route.ts  OR  lib/<your-module>/actions.ts ("use server")
-import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — provided by team/auth
+// app/api/[[...route]]/route.ts — Hono (do NOT use app/api/<module>/route.ts)
+// Inspired by Auth-Api/src/index.ts — all handlers in the single Hono app
+import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — provided by team/auth (takes c: Context)
 import { createPostSchema } from "@/lib/<your-module>/schema";
+import { db } from "@/lib/turso";
 
-export async function POST(req: Request) {
-  const user = await requireRole(["admin", "editor"]); // AuthN + AuthZ first
-  const raw = await req.json();
-
+app.post("/<your-module>/create", async (c) => {
+  const user = await requireRole(c, ["admin", "editor"]); // AuthN + AuthZ first (reads auth_token via getCookie(c))
+  const raw = await c.req.json();
   const parsed = createPostSchema.safeParse(raw);
-  if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
-  }
-
-  // parsed.data is now safe to insert
+  if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  // parsed.data is safe to insert
   await db.insert(posts).values({ ...parsed.data, ownerId: user.userId });
-  return Response.json({ ok: true });
-}
+  return c.json({ ok: true }, 201);
+});
 
-// Server Action alternative:
-"use server";
-export async function createPostAction(raw: unknown) {
-  const user = await requireRole(["admin", "editor"]);
-  const data = createPostSchema.parse(raw); // throws if invalid, caught by error boundary
-  return db.insert(posts).values({ ...data, ownerId: user.userId });
-}
+// Server Action alternative (Hono is preferred):
+// "use server";
+// export async function createPostAction(raw: unknown) {
+//   const user = await requireRole(["admin", "editor"]);
+//   const data = createPostSchema.parse(raw);
+//   return db.insert(posts).values({ ...data, ownerId: user.userId });
+// }
 ```
 
 > **Rule:** Every mutation path is `requireRole() → schema.safeParse() → db query`. Client `zodResolver` is for UX, server `safeParse/parse` is for security.
