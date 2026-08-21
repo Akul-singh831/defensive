@@ -575,6 +575,239 @@ export async function GET() {
       </div>
 
       {/* RULES */}
+
+      {/* SECURITY — MANDATORY */}
+      <section id="security" className="mx-auto max-w-6xl px-6 py-10 md:py-14 scroll-mt-16">
+        <div className="rounded-2xl border-2 border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/20 overflow-hidden shadow-sm">
+          <div className="h-1.5 bg-gradient-to-r from-red-600 via-red-500 to-orange-500" />
+          <div className="p-6 md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="h-10 w-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-sm">
+                  <Shield className="h-5 w-5" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl md:text-2xl font-semibold tracking-tight">Security — Mandatory</h2>
+                    <Badge className="bg-red-600 hover:bg-red-600 text-white border-0 text-[11px]">READ BEFORE CODING</Badge>
+                  </div>
+                  <p className="text-xs font-mono text-red-700 dark:text-red-300 mt-1">SECURITY.md • No global Turso functions • PRs without auth will be rejected</p>
+                  <p className="text-xs font-mono text-zinc-500 dark:text-zinc-400 mt-1">⚠️ requireAuth()/requireRole() snippets are placeholders — owned by <code className="bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">team/auth</code> (<code className="bg-white dark:bg-zinc-900 border px-1 py-0.5 rounded">lib/auth/*</code>). Other teams just import.</p>
+                </div>
+              </div>
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noreferrer"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full bg-white dark:bg-zinc-900")}
+              >
+                Open SECURITY.md <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+            </div>
+
+            <div className="mt-6 grid md:grid-cols-3 gap-3">
+              <Card className="border-red-200 dark:border-red-900 bg-white dark:bg-zinc-900 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-mono flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-red-600" /> 1. No Global Functions</CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs leading-6 text-muted-foreground">
+                  Never export a raw <code className="font-mono bg-muted px-1 py-0.5 rounded">db.*</code> call callable from the client. Every sensitive function must start with <code className="font-mono bg-muted px-1 py-0.5 rounded">requireAuth() → requireRole([...])</code> → validate → query — <span className="font-semibold text-foreground">placeholder, provided by <code className="font-mono bg-muted px-1 py-0.5 rounded">team/auth</code> via <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/guard</code></span>. <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/turso.ts</code> only in Server Components / <code className="font-mono bg-muted px-1 py-0.5 rounded">"use server"</code>.
+                </CardContent>
+              </Card>
+              <Card className="border-red-200 dark:border-red-900 bg-white dark:bg-zinc-900 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-mono flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-red-600" /> 2. JWT — No OAuth Needed</CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs leading-6 text-muted-foreground">
+                  Use <code className="font-mono bg-muted px-1 py-0.5 rounded">jose</code> JWT <code className="font-mono bg-muted px-1 py-0.5 rounded">{"{userId, role}"}</code> in <code className="font-mono bg-muted px-1 py-0.5 rounded">httpOnly</code> cookies — not <code className="font-mono bg-muted px-1 py-0.5 rounded">localStorage</code>. <span className="font-semibold text-foreground">Placeholders — <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/jwt.ts</code>, <code className="font-mono bg-muted px-1 py-0.5 rounded">lib/auth/guard.ts</code>, <code className="font-mono bg-muted px-1 py-0.5 rounded">JWT_SECRET</code> owned by <code className="font-mono bg-muted px-1 py-0.5 rounded">team/auth</code>.</span> Other teams: just <code className="font-mono bg-muted px-1 py-0.5 rounded">import &#123; requireRole &#125; from &quot;@/lib/auth/guard&quot;</code> once it lands — don&apos;t duplicate. You can troll your own JWT for learning in <code className="font-mono bg-muted px-1 py-0.5 rounded">app/demo/*</code> only.
+                </CardContent>
+              </Card>
+              <Card className="border-red-200 dark:border-red-900 bg-white dark:bg-zinc-900 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-mono flex items-center gap-1.5"><TriangleAlert className="h-3.5 w-3.5 text-red-600" /> 3. Hash + Salt</CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs leading-6 text-muted-foreground">
+                  Main site: <code className="font-mono bg-muted px-1 py-0.5 rounded">bcrypt.hash(password, 12)</code> or <code className="font-mono bg-muted px-1 py-0.5 rounded">argon2id</code> — salt is automatic. Never plaintext or <code className="font-mono bg-muted px-1 py-0.5 rounded">MD5/SHA1/SHA256(pw)</code>. Insecure demo (<code className="font-mono bg-muted px-1 py-0.5 rounded">app/demo/insecure-auth</code>) comes later, isolated with ⚠️ banner.
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-4 rounded-xl border bg-white dark:bg-zinc-900 p-4">
+              <div className="text-xs font-semibold flex items-center gap-1.5"><Code2 className="h-3.5 w-3.5" /> Secure edit — copy pattern</div>
+              <pre className="mt-2 overflow-x-auto rounded-lg bg-zinc-950 text-zinc-100 p-3 text-xs font-mono leading-5 border border-zinc-800">{`"use server";
+import { requireRole } from "@/lib/auth/guard"; // PLACEHOLDER — owned by team/auth
+import { db } from "@/lib/turso";
+import { posts } from "@/lib/schema";
+import { eq } from "drizzle-orm";
+
+export async function updatePostSecure(postId: number, data: { title: string }) {
+  const user = await requireRole(["admin", "editor"]); // AuthN + AuthZ
+  // + zod validation here
+  return db.update(posts).set(data).where(eq(posts.id, postId));
+}`}</pre>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Badge variant="secondary" className="font-mono text-[11px]">zod</Badge>
+                <Badge variant="secondary" className="font-mono text-[11px]">react-hook-form</Badge>
+                <Badge variant="secondary" className="font-mono text-[11px]">jose</Badge>
+                <Badge variant="secondary" className="font-mono text-[11px]">bcryptjs / argon2</Badge>
+                <Badge variant="outline" className="font-mono text-[11px]">httpOnly cookie</Badge>
+              </div>
+            </div>
+
+            <Alert className="mt-4 bg-white dark:bg-zinc-900 border-red-200 dark:border-red-900">
+              <TriangleAlert className="h-4 w-4 text-red-600" />
+              <AlertTitle className="text-xs font-semibold">Main site stays secure — demo comes later</AlertTitle>
+              <AlertDescription className="text-xs leading-6">
+                The insecure demo (plaintext + unsalted SHA256, same password → same hash reveals reuse) will be added under <code className="font-mono bg-muted px-1 py-0.5 rounded">app/demo/insecure-auth</code> only — clearly labelled <code className="font-mono bg-muted px-1 py-0.5 rounded">⚠️ Educational — do not copy</code>. Never ship demo code to main routes. Full guide: <code className="font-mono bg-muted px-1 py-0.5 rounded">SECURITY.md</code> at repo root.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6">
+        <Separator />
+      </div>
+
+
+      {/* FORMS — ZOD + REACT-HOOK-FORM (AURAEDGE PATTERN) */}
+      <section id="validation" className="mx-auto max-w-6xl px-6 py-10 md:py-14 scroll-mt-16">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          <FileCode2 className="h-3.5 w-3.5" /> Forms & Validation
+        </div>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Validate with <span className="font-mono text-lg">zod</span> + <span className="font-mono text-lg">react-hook-form</span></h2>
+          <Badge variant="secondary" className="font-mono text-xs">Follow AuraEdge register pattern</Badge>
+        </div>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-3xl">
+          One <code className="font-mono bg-muted px-1 py-0.5 rounded">zod</code> schema, reused client + server. Client resolver is for UX, server <code className="font-mono bg-muted px-1 py-0.5 rounded">safeParse</code> is for security. Copy the exact pattern from <a href="https://raw.githubusercontent.com/real-zephex/auraedge-website/refs/heads/main/app/register/page.tsx" target="_blank" rel="noreferrer" className="underline decoration-dotted">auraedge-website/app/register/page.tsx</a>.
+        </p>
+
+        <div className="mt-6 grid lg:grid-cols-2 gap-4">
+          {/* Step 1: Schema */}
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-mono flex items-center gap-2">1. Define schema → infer type</CardTitle>
+              <CardDescription className="text-xs">lib/&lt;module&gt;/schema.ts — single source of truth</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border bg-zinc-950 text-zinc-100 p-3.5 text-xs font-mono leading-5 overflow-x-auto">
+                <div className="text-zinc-400">// lib/your-module/schema.ts</div>
+                <div>import * as z from &quot;zod&quot;;</div>
+                <div className="mt-2">export const createPostSchema = z.object(&#123;</div>
+                <div className="pl-3">title: z.string().min(3, &quot;≥3 chars&quot;),</div>
+                <div className="pl-3">content: z.string().min(20, &quot;≥20 chars&quot;),</div>
+                <div className="pl-3">category: z.enum([&quot;xss&quot;,&quot;sqli&quot;,&quot;phishing&quot;]),</div>
+                <div className="pl-3">email: z.string().email(&quot;Valid email&quot;),</div>
+                <div className="pl-3">agreeToTerms: z.boolean().refine(v =&gt; v, &#123;</div>
+                <div className="pl-6">message: &quot;You must accept&quot;</div>
+                <div className="pl-3">&#125;),</div>
+                <div>&#125;);</div>
+                <div className="mt-2 text-emerald-400">export type CreatePostInput = z.infer&lt;typeof createPostSchema&gt;;</div>
+                <div className="mt-2 text-zinc-400">// AuraEdge: registerSchema + z.infer — never hand-type the form type</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Step 2: useForm with resolver */}
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-mono flex items-center gap-2">2. useForm + zodResolver (AuraEdge exactly)</CardTitle>
+              <CardDescription className="text-xs">useForm&lt;T&gt; with resolver, defaultValues, register, errors, isSubmitting</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border bg-zinc-950 text-zinc-100 p-3.5 text-xs font-mono leading-5 overflow-x-auto">
+                <div>import &#123; useForm &#125; from &quot;react-hook-form&quot;;</div>
+                <div>import &#123; zodResolver &#125; from &quot;@hookform/resolvers/zod&quot;;</div>
+                <div className="mt-2">const &#123; register, handleSubmit, setValue, watch,</div>
+                <div className="pl-3">formState: &#123; errors, isSubmitting &#125;</div>
+                <div>&#125; = useForm&lt;CreatePostInput&gt;(&#123;</div>
+                <div className="pl-3">resolver: zodResolver(createPostSchema),</div>
+                <div className="pl-3">defaultValues: &#123; category: &quot;xss&quot;, isPublished: false &#125;</div>
+                <div>&#125;);</div>
+                <div className="mt-2 text-zinc-400">// Every input: &#123;...register(&quot;title&quot;)&#125; + &#123;errors.title?.message&#125; below</div>
+                <div className="mt-2">&lt;Input &#123;...register(&quot;title&quot;)&#125; /&gt;</div>
+                <div className="text-red-400">&#123;errors.title &amp;&amp; &lt;p&gt;&#123;errors.title.message&#125;&lt;/p&gt;&#125;</div>
+                <div className="mt-1 text-zinc-400">// setValue/watch for auto-populate — AuraEdge: setValue(&quot;email&quot;, user.email)</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Steps 3 & 4 full width */}
+        <div className="mt-4 grid lg:grid-cols-2 gap-4">
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-mono flex items-center gap-2">3. Form JSX — copy AuraEdge field pattern</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border bg-zinc-950 text-zinc-100 p-3.5 text-xs font-mono leading-5 overflow-x-auto">
+                <div>&lt;form onSubmit=&#123;handleSubmit(onSubmit)&#125;&gt;</div>
+                <div className="pl-2">&lt;Label&gt;Title *&lt;/Label&gt;</div>
+                <div className="pl-2">&lt;Input &#123;...register(&quot;title&quot;)&#125; placeholder=&quot;Stored XSS demo&quot; /&gt;</div>
+                <div className="pl-2 text-red-400">&#123;errors.title &amp;&amp; &lt;p className=&quot;text-xs text-red-400&quot;&gt;&#123;errors.title.message&#125;&lt;/p&gt;&#125;</div>
+                <div className="mt-2 pl-2">&lt;Textarea &#123;...register(&quot;content&quot;)&#125; /&gt;</div>
+                <div className="pl-2 text-red-400">&#123;errors.content &amp;&amp; ...&#125;</div>
+                <div className="mt-2 pl-2">&lt;select &#123;...register(&quot;category&quot;)&#125;&gt;&lt;option value=&quot;xss&quot;&gt;...&lt;/select&gt;</div>
+                <div className="pl-2">&lt;input type=&quot;checkbox&quot; &#123;...register(&quot;agreeToTerms&quot;)&#125; /&gt;</div>
+                <div className="mt-2 pl-2 text-zinc-400">// AuraEdge: &lt;Input &#123;...register(&quot;email&quot;)&#125; /&gt; + &lt;p&gt;&#123;errors.email.message&#125;&lt;/p&gt; per field</div>
+                <div className="pl-2">&lt;Button disabled=&#123;isSubmitting&#125;&gt;&#123;isSubmitting ? &quot;Submitting...&quot; : &quot;Submit&quot;&#125;&lt;/Button&gt;</div>
+                <div>&lt;/form&gt;</div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <Badge variant="secondary" className="font-mono text-[11px]">register</Badge>
+                <Badge variant="secondary" className="font-mono text-[11px]">handleSubmit</Badge>
+                <Badge variant="secondary" className="font-mono text-[11px]">errors.*.message</Badge>
+                <Badge variant="secondary" className="font-mono text-[11px]">isSubmitting</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-amber-200 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/10 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-mono flex items-center gap-2"><TriangleAlert className="h-3.5 w-3.5 text-amber-600" /> 4. Re-validate on server — never trust client</CardTitle>
+              <CardDescription className="text-xs">Attacker can curl your API. safeParse before Drizzle. <span className="font-semibold">requireRole is a placeholder from team/auth.</span></CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border bg-zinc-950 text-zinc-100 p-3.5 text-xs font-mono leading-5 overflow-x-auto">
+                <div>// app/api/your-module/create/route.ts</div>
+                <div>import &#123; requireRole &#125; from &quot;@/lib/auth/guard&quot;;</div>
+                <div>import &#123; createPostSchema &#125; from &quot;@/lib/your-module/schema&quot;;</div>
+                <div className="mt-2">export async function POST(req: Request) &#123;</div>
+                <div className="pl-3 text-emerald-400">const user = await requireRole([&quot;admin&quot;]); // AuthN+AuthZ first</div>
+                <div className="pl-3">const raw = await req.json();</div>
+                <div className="pl-3">const parsed = createPostSchema.safeParse(raw);</div>
+                <div className="pl-3">if (!parsed.success)</div>
+                <div className="pl-6">return Response.json(&#123; error: parsed.error.flatten() &#125;, &#123; status: 400 &#125;);</div>
+                <div className="pl-3">await db.insert(posts).values(&#123; ...parsed.data, ownerId: user.userId &#125;);</div>
+                <div className="pl-3">return Response.json(&#123; ok: true &#125;);</div>
+                <div>&#125;</div>
+                <div className="mt-2 text-zinc-400">// Client zodResolver = UX, server safeParse = security</div>
+              </div>
+              <Alert className="mt-3 bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-900 py-2">
+                <AlertDescription className="text-xs leading-5">Every mutation: <code className="font-mono bg-muted px-1 py-0.5 rounded">requireRole()</code> → <code className="font-mono bg-muted px-1 py-0.5 rounded">schema.safeParse()</code> → <code className="font-mono bg-muted px-1 py-0.5 rounded">db.*</code></AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-4 rounded-xl border bg-muted/30 p-4 text-xs leading-6">
+          <div className="font-semibold">Checklist — did you follow AuraEdge?</div>
+          <div className="mt-1 grid sm:grid-cols-2 gap-1 text-muted-foreground">
+            <div>• <code className="font-mono bg-background border px-1 py-0.5 rounded">z.infer&lt;typeof schema&gt;</code> for the form type</div>
+            <div>• <code className="font-mono bg-background border px-1 py-0.5 rounded">zodResolver(schema)</code> + <code className="font-mono bg-background border px-1 py-0.5 rounded">defaultValues</code> per field/enum</div>
+            <div>• <code className="font-mono bg-background border px-1 py-0.5 rounded">&#123;...register(&quot;field&quot;)&#125;</code> on every input/select/checkbox</div>
+            <div>• <code className="font-mono bg-background border px-1 py-0.5 rounded">&#123;errors.field?.message&#125;</code> under each field</div>
+            <div>• <code className="font-mono bg-background border px-1 py-0.5 rounded">setValue/watch</code> when auto-populating</div>
+            <div>• Re-parse with <code className="font-mono bg-background border px-1 py-0.5 rounded">safeParse</code> on server before <code className="font-mono bg-background border px-1 py-0.5 rounded">db</code></div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6">
+        <Separator />
+      </div>
+
       <section id="rules" className="mx-auto max-w-6xl px-6 py-10 md:py-14">
         <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
           <Lock className="h-3.5 w-3.5" /> Contribution Rules
