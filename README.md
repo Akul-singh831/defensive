@@ -1,36 +1,195 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ethical Hacking Project
+
+A Next.js project for the Ethical Hacking course — each team builds their module as an isolated route + library code on top of a shared stack.
+
+## Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| **Next.js 16 (App Router)** | React framework |
+| **TypeScript** | Language — all code must be typed |
+| **Tailwind CSS v4** | Styling |
+| **shadcn/ui** | UI component library (`@/components/ui`) |
+| **Turso (SQLite)** | Database — SQLite at the edge |
+| **Drizzle ORM + Drizzle Kit** | Type-safe ORM & migrations |
+
+> Do not introduce any other styling / UI / database libraries without prior approval.
+
+## Prerequisites
+
+- `bun` v1.3+ (project uses `bun.lock` — use `bun install`)
+- Turso account + CLI (for DB url/token if you need to create your own DB)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# 1. Clone & install
+git clone <repo-url>
+cd ethical-hacking-project
+bun install
+
+# 2. Configure env (ask lead for values or create your own Turso DB)
+cp .env.example .env.local
+# .env.local must contain:
+# TURSO_DATABASE_URL=libsql://...
+# TURSO_AUTH_TOKEN=eyJ...
+
+# 3. Sync database
+bun run db:sync        # generate + migrate + push (one command)
+# or individually:
+# bun run db:generate  # generate SQL from lib/schema.ts
+# bun run db:migrate   # apply migrations to Turso
+# bun run db:push      # push schema directly (dev alternative)
+
+# 4. Run dev server
 bun dev
+# open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+app/
+  layout.tsx          # root layout — DO NOT EDIT
+  page.tsx            # landing page — DO NOT EDIT
+  globals.css         # global Tailwind styles — DO NOT EDIT
+  <your-route>/       # <-- CREATE YOUR ROUTE HERE e.g. app/team-xyz/page.tsx
+lib/
+  schema.ts           # ★ ONLY shared file you may edit (Drizzle tables)
+  turso.ts            # Turso client — DO NOT EDIT
+  utils.ts            # shadcn helper — DO NOT EDIT
+  <your-module>/      # <-- helper functions for your module go here
+                      # e.g. lib/team-xyz/helpers.ts, lib/team-xyz/queries.ts
+components/
+  ui/                 # shadcn components — DO NOT EDIT, just import
+drizzle/              # generated migrations — DO NOT EDIT MANUALLY
+drizzle.config.ts     # drizzle config — DO NOT EDIT
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Workflow — Branch per Team
 
-## Learn More
+**Every team MUST work on its own branch.**
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# 1. Start from main
+git checkout main
+git pull origin main
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 2. Create your team branch
+git checkout -b team/<team-name>
+# examples: team/sql-injection , team/xss-demo , team/phishing-awareness
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 3. Work & commit
+git add app/<your-route> lib/<your-module> lib/schema.ts
+git commit -m "feat(team-xyz): add <feature>"
 
-## Deploy on Vercel
+# 4. Push & open PR to main
+git push -u origin team/<team-name>
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> Keep your branch rebased on `main` if `lib/schema.ts` changes upstream.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contribution Rules — READ CAREFULLY
+
+> **Violations will cause the PR/branch to be rejected instantly.**
+
+### 1. What you MAY edit
+
+| Allowed | Details |
+|---------|---------|
+| `lib/schema.ts` | **The ONLY root shared file you may touch.** Add your tables there. Coordinate with other teams to avoid table name collisions. |
+| `app/<your-route>/**` | Create **new routes** for your feature. Do not modify existing routes belonging to other teams. |
+| `lib/<your-module>/**` | Create a folder named after your module/team for all helper functions, queries, utils, types, etc. E.g. `lib/phishing/utils.ts` |
+
+### 2. What you MUST NOT edit
+
+- **NEVER touch `package.json`** — adding/removing dependencies via branches is forbidden. Need a package? Request it from the lead. Branches that modify `package.json` will be **rejected instantly**.
+- **NEVER edit files you are not assigned to.** Don't touch `app/layout.tsx`, `app/page.tsx`, `app/globals.css`, `lib/turso.ts`, `lib/utils.ts`, `drizzle.config.ts`, `components/ui/*`, or another team's `app/*` / `lib/*` folder.
+- **NEVER edit `drizzle/` manually** — it is generated by `drizzle-kit`.
+- **NEVER commit `.env.local`** — it is gitignored and contains secrets.
+
+### 3. Unified / Shared Code
+
+If you need shared types, constants, or helpers that multiple teams will use:
+
+- Create them under `lib/` as a new file/folder — e.g. `lib/shared/constants.ts`, `lib/validators.ts`
+- Discuss with the lead first so naming doesn't clash.
+- Do **not** modify existing shared files to add your code — create new ones.
+
+### 4. Correct Example
+
+```bash
+# ✅ CORRECT — team "xss"
+app/xss/page.tsx
+app/xss/components/XssDemo.tsx
+lib/xss/queries.ts
+lib/xss/validator.ts
+lib/schema.ts          # added xssAttempts table
+
+# ❌ WRONG
+package.json           # NEVER
+app/page.tsx           # belongs to root, don't edit
+lib/turso.ts           # don't edit
+lib/other-team/helper.ts # don't touch other team's code
+```
+
+## Database
+
+- Schema is defined in `lib/schema.ts` using Drizzle (`sqliteTable`).
+- Turso client is at `lib/turso.ts` / `lib/db.ts` — just import `db` :
+
+```ts
+import { db } from "@/lib/turso"; // or @/lib/db depending on setup
+import { users } from "@/lib/schema";
+
+export async function GET() {
+  const rows = await db.select().from(users);
+  return Response.json(rows);
+}
+```
+
+- After editing `lib/schema.ts`, run:
+
+```bash
+bun run db:sync
+```
+
+This generates the migration, applies it, and pushes to Turso in one go.
+
+- Drizzle Studio (optional):
+
+```bash
+bunx drizzle-kit studio
+```
+
+## Styling & UI
+
+- Use **Tailwind CSS** utility classes for all styling.
+- Use **shadcn/ui** components from `@/components/ui` — add new ones locally only if needed (ask lead first, since it modifies `components.json`):
+
+```bash
+npx shadcn@latest add button --yes
+```
+
+- Keep TypeScript strict — no `any` without justification.
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start dev server |
+| `bun run build` | Production build |
+| `bun run lint` | ESLint |
+| `bun run db:generate` | Generate SQL from `lib/schema.ts` |
+| `bun run db:migrate` | Apply migrations to Turso |
+| `bun run db:push` | Push schema directly (dev) |
+| `bun run db:sync` | **Generate + Migrate + Push in one command** |
+
+## Need Help?
+
+- Check `AGENTS.md` for agent-specific instructions.
+- For doubts about `lib/schema.ts` conflicts or shared `lib/` files, ping the lead before pushing.
+- Never force-push to `main`.
+
+---
+Built with Next.js • Tailwind CSS • shadcn/ui • TypeScript • Turso
