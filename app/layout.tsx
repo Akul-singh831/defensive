@@ -22,11 +22,11 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const SITE_URL = "https://university-erp.internal";
-const SITE_NAME = "Apex University ERP";
-const TITLE = "Apex University Enterprise ERP";
+const SITE_URL = "https://ltsu.ac.in";
+const SITE_NAME = "Lamrin Tech Skills University Punjab ERP";
+const TITLE = "Lamrin Tech Skills University Punjab | Enterprise ERP";
 const DESCRIPTION =
-  "Integrated Enterprise Resource Planning System for Admissions, Enrollment, Curriculum, and Academic Management.";
+  "Integrated Enterprise Resource Planning System for Admissions, Enrollment, Skill Labs, and Academic Management at Lamrin Tech Skills University Punjab (anchored by IBM, Tata Technologies, and Ansys).";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -45,16 +45,18 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
-    "ethical hacking",
-    "cybersecurity",
+    "ltsu",
+    "lamrin tech skills university",
+    "skill university punjab",
+    "ibm tech school",
+    "tata technologies engineering",
+    "ansys simulation",
     "next.js",
     "tailwind css",
     "shadcn",
     "typescript",
-    "turso",
-    "sqlite",
-    "drizzle orm",
-    "semester project",
+    "turso sqlite",
+    "university erp",
   ],
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,

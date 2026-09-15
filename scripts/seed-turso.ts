@@ -4,11 +4,11 @@ import { hashPassword } from "../lib/auth/password";
 import { eq } from "drizzle-orm";
 
 async function seed() {
-  console.log("🌱 Starting Turso database seed...");
+  console.log("🌱 Starting Lamrin Tech Skills University Punjab (LTSU) database seed...");
 
   const now = new Date().toISOString();
 
-  // 1. SEED USERS
+  // 1. SEED SYSTEM USERS
   console.log("👤 Seeding system users (Admin, Faculty, Students)...");
   
   const adminPassHash = await hashPassword("AdminPass123!");
@@ -21,8 +21,8 @@ async function seed() {
       email: "admin@university.edu",
       passwordHash: adminPassHash,
       role: "admin",
-      firstName: "System",
-      lastName: "Administrator",
+      firstName: "LTSU",
+      lastName: "Registrar",
       isActive: true,
       failedLoginAttempts: 0,
       lockedUntil: null,
@@ -34,8 +34,8 @@ async function seed() {
       email: "faculty1@university.edu",
       passwordHash: facultyPassHash,
       role: "teacher",
-      firstName: "Alan",
-      lastName: "Turing",
+      firstName: "Dr. Alan",
+      lastName: "Turing (IBM Practice Lead)",
       isActive: true,
       failedLoginAttempts: 0,
       lockedUntil: null,
@@ -47,8 +47,8 @@ async function seed() {
       email: "faculty2@university.edu",
       passwordHash: facultyPassHash,
       role: "teacher",
-      firstName: "Grace",
-      lastName: "Hopper",
+      firstName: "Dr. Grace",
+      lastName: "Hopper (Tata Tech SME)",
       isActive: true,
       failedLoginAttempts: 0,
       lockedUntil: null,
@@ -60,8 +60,8 @@ async function seed() {
       email: "student1@university.edu",
       passwordHash: studentPassHash,
       role: "student",
-      firstName: "Alice",
-      lastName: "Smith",
+      firstName: "Simran",
+      lastName: "Kaur (LTSU Scholar)",
       isActive: true,
       failedLoginAttempts: 0,
       lockedUntil: null,
@@ -73,8 +73,8 @@ async function seed() {
       email: "student2@university.edu",
       passwordHash: studentPassHash,
       role: "student",
-      firstName: "Bob",
-      lastName: "Johnson",
+      firstName: "Gurpreet",
+      lastName: "Singh",
       isActive: true,
       failedLoginAttempts: 0,
       lockedUntil: null,
@@ -98,49 +98,82 @@ async function seed() {
     }
   }
 
-  // 2. SEED COURSES
-  console.log("📚 Seeding academic courses...");
+  // 2. SEED LTSU ACADEMIC COURSES
+  console.log("📚 Seeding LTSU academic & skill courses...");
   const seedCourses = [
     {
-      id: "crs_cs101",
-      code: "CS101",
-      name: "Introduction to Computer Science",
-      credits: 3,
-      program: "Computer Science",
+      id: "crs_ibm_ccv",
+      code: "IBM-CCV101",
+      name: "Cloud Computing & Virtualization (IBM)",
+      credits: 4,
+      program: "B.Tech CSE (Cloud Computing) - IBM",
       semester: 1,
       isActive: true,
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "crs_cs201",
-      code: "CS201",
-      name: "Data Structures and Algorithms",
+      id: "crs_ibm_aiml",
+      code: "IBM-AIML201",
+      name: "Artificial Intelligence & Deep Learning (IBM)",
       credits: 4,
-      program: "Computer Science",
+      program: "B.Tech CSE (AI & Machine Learning) - IBM",
       semester: 3,
       isActive: true,
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "crs_cyb301",
-      code: "CYB301",
-      name: "Network Security and Cryptography",
+      id: "crs_ibm_csdf",
+      code: "IBM-CSDF101",
+      name: "Cyber Security & Digital Forensics (IBM)",
       credits: 4,
-      program: "Cybersecurity",
-      semester: 5,
+      program: "B.Tech CSE (Cyber Security) - IBM",
+      semester: 1,
       isActive: true,
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "crs_cyb302",
-      code: "CYB302",
-      name: "Ethical Hacking and Penetration Testing",
+      id: "crs_tat_rob",
+      code: "TAT-ROB101",
+      name: "Industrial Robotics & Automation (Tata Tech)",
       credits: 4,
-      program: "Cybersecurity",
-      semester: 5,
+      program: "B.Tech Mechanical (Robotics & Automation) - Tata Tech",
+      semester: 1,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: "crs_tat_ev",
+      code: "TAT-EV201",
+      name: "Electric Vehicles & Advanced Mobility (Tata Tech)",
+      credits: 4,
+      program: "B.Tech Mechanical (Electric Vehicles) - Tata Tech",
+      semester: 3,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: "crs_uscm_fin",
+      code: "USCM-FIN101",
+      name: "Financial Technology & Analytics (NSDC)",
+      credits: 3,
+      program: "BBA (Financial Technology) - NSDC",
+      semester: 1,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: "crs_pharm_101",
+      code: "RIP-PHARM101",
+      name: "Pharmaceutical Chemistry & Pharmacology",
+      credits: 4,
+      program: "B.Pharmacy - Rayat Institute",
+      semester: 1,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -156,52 +189,52 @@ async function seed() {
 
     if (!existing) {
       await db.insert(schema.courses).values(course);
-      console.log(`   + Created course: ${course.code} - ${course.name}`);
+      console.log(`   + Created LTSU course: ${course.code} - ${course.name}`);
     } else {
-      console.log(`   * Course exists: ${course.code}`);
+      console.log(`   * LTSU course exists: ${course.code}`);
     }
   }
 
   // 3. SEED SUBJECTS
-  console.log("📖 Seeding subjects...");
+  console.log("📖 Seeding subjects & modules...");
   const seedSubjects = [
     {
-      id: "sub_cs101",
-      courseId: "crs_cs101",
-      code: "SUB-CS101",
-      name: "Foundations of Computing",
-      credits: 3,
-      description: "Fundamental programming concepts, hardware architecture, and problem solving",
+      id: "sub_ibm_ccv",
+      courseId: "crs_ibm_ccv",
+      code: "SUB-IBM-CCV",
+      name: "Enterprise Cloud Architecture & OpenShift",
+      credits: 4,
+      description: "IBM Cloud platform services, RedHat OpenShift containers, Kubernetes orchestration, and hybrid enterprise deployments",
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "sub_cs201",
-      courseId: "crs_cs201",
-      code: "SUB-CS201",
-      name: "Advanced Data Structures",
+      id: "sub_ibm_aiml",
+      courseId: "crs_ibm_aiml",
+      code: "SUB-IBM-AIML",
+      name: "IBM Watson & Neural Networks",
       credits: 4,
-      description: "Trees, graphs, dynamic programming, and asymptotic complexity analysis",
+      description: "Deep neural networks, computer vision, natural language understanding, and Watson API integrations",
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "sub_cyb301",
-      courseId: "crs_cyb301",
-      code: "SUB-CYB301",
-      name: "Cryptography Principles",
+      id: "sub_tat_rob",
+      courseId: "crs_tat_rob",
+      code: "SUB-TAT-ROB",
+      name: "PLC Programming & Industrial Robotic Arms",
       credits: 4,
-      description: "Symmetric and asymmetric encryption, public key infrastructure, and hash integrity",
+      description: "6-axis robot kinematics, Siemens/Allen-Bradley PLC programming, SCADA interfaces, and factory automation",
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "sub_cyb302",
-      courseId: "crs_cyb302",
-      code: "SUB-CYB302",
-      name: "Offensive Security and Penetration Testing",
+      id: "sub_tat_ev",
+      courseId: "crs_tat_ev",
+      code: "SUB-TAT-EV",
+      name: "EV Powertrains & Battery Thermal Management",
       credits: 4,
-      description: "Vulnerability assessment, privilege escalation, and defensive remediation",
+      description: "Lithium-ion chemistry, regenerative braking algorithms, inverter topologies, and vehicle CAN communication",
       createdAt: now,
       updatedAt: now,
     },
@@ -222,12 +255,12 @@ async function seed() {
     }
   }
 
-  // 4. SEED COURSE ASSIGNMENTS (FACULTY TO SECTION)
-  console.log("👨‍🏫 Seeding course assignments...");
+  // 4. SEED COURSE ASSIGNMENTS
+  console.log("👨‍🏫 Seeding faculty assignments...");
   const seedAssignments = [
     {
-      id: "asg_cs101_fac1",
-      courseId: "crs_cs101",
+      id: "asg_ibm_ccv_fac1",
+      courseId: "crs_ibm_ccv",
       teacherId: "usr_faculty1",
       sectionCode: "A",
       academicYear: "2026-2027",
@@ -236,32 +269,12 @@ async function seed() {
       updatedAt: now,
     },
     {
-      id: "asg_cs201_fac1",
-      courseId: "crs_cs201",
-      teacherId: "usr_faculty1",
-      sectionCode: "A",
-      academicYear: "2026-2027",
-      semester: 3,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: "asg_cyb301_fac2",
-      courseId: "crs_cyb301",
+      id: "asg_tat_rob_fac2",
+      courseId: "crs_tat_rob",
       teacherId: "usr_faculty2",
       sectionCode: "A",
       academicYear: "2026-2027",
-      semester: 5,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: "asg_cyb302_fac2",
-      courseId: "crs_cyb302",
-      teacherId: "usr_faculty2",
-      sectionCode: "A",
-      academicYear: "2026-2027",
-      semester: 5,
+      semester: 1,
       createdAt: now,
       updatedAt: now,
     },
@@ -276,7 +289,7 @@ async function seed() {
 
     if (!existing) {
       await db.insert(schema.courseAssignments).values(asg);
-      console.log(`   + Created assignment: Course ${asg.courseId} -> Faculty ${asg.teacherId} (Sec ${asg.sectionCode})`);
+      console.log(`   + Created assignment: Course ${asg.courseId} -> Faculty ${asg.teacherId}`);
     } else {
       console.log(`   * Assignment exists: ${asg.id}`);
     }
@@ -286,27 +299,27 @@ async function seed() {
   console.log("🎓 Seeding enrolled students...");
   const seedEnrolledStudents = [
     {
-      id: "enr_student1",
+      id: "enr_ltsu_001",
       userId: "usr_student1",
-      applicationId: "app_seed_001",
-      enrollmentNumber: "ENR-2026-001",
+      applicationId: "app_ltsu_001",
+      enrollmentNumber: "LTSU/2026/CSE/0142",
       enrollmentDate: now,
-      program: "Computer Science",
+      program: "B.Tech CSE (Cloud Computing) - IBM",
       batch: "2026-2030",
-      rollNumber: "CS2026001",
+      rollNumber: "260100142",
       isActive: true,
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "enr_student2",
+      id: "enr_ltsu_002",
       userId: "usr_student2",
-      applicationId: "app_seed_002",
-      enrollmentNumber: "ENR-2026-002",
+      applicationId: "app_ltsu_002",
+      enrollmentNumber: "LTSU/2026/ME/0089",
       enrollmentDate: now,
-      program: "Cybersecurity",
+      program: "B.Tech Mechanical (Robotics & Automation) - Tata Tech",
       batch: "2026-2030",
-      rollNumber: "CYB2026002",
+      rollNumber: "260200089",
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -328,61 +341,19 @@ async function seed() {
     }
   }
 
-  // 6. SEED STUDENT COURSE ENROLLMENTS
-  console.log("📝 Seeding student course enrollments...");
-  const seedStudentEnrollments = [
-    {
-      id: "stdenr_1_cs101",
-      studentId: "usr_student1",
-      courseId: "crs_cs101",
-      sectionCode: "A",
-      academicYear: "2026-2027",
-      semester: 1,
-      enrollmentDate: now,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: "stdenr_2_cyb301",
-      studentId: "usr_student2",
-      courseId: "crs_cyb301",
-      sectionCode: "A",
-      academicYear: "2026-2027",
-      semester: 5,
-      enrollmentDate: now,
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
-
-  for (const senr of seedStudentEnrollments) {
-    const existing = await db
-      .select()
-      .from(schema.studentEnrollments)
-      .where(eq(schema.studentEnrollments.id, senr.id))
-      .get();
-
-    if (!existing) {
-      await db.insert(schema.studentEnrollments).values(senr);
-      console.log(`   + Student enrollment: Student ${senr.studentId} in Course ${senr.courseId}`);
-    } else {
-      console.log(`   * Student enrollment exists: ${senr.id}`);
-    }
-  }
-
-  // 7. SEED TIMETABLES
-  console.log("⏰ Seeding timetable schedules...");
+  // 6. SEED TIMETABLES (LTSU REAL LABS)
+  console.log("⏰ Seeding practical skill lab schedules...");
   const seedTimetables = [
     {
-      id: "tt_cs101_mon",
-      courseId: "crs_cs101",
-      subjectId: "sub_cs101",
+      id: "tt_ibm_ccv_mon",
+      courseId: "crs_ibm_ccv",
+      subjectId: "sub_ibm_ccv",
       teacherId: "usr_faculty1",
       sectionCode: "A",
       dayOfWeek: "Monday",
       startTime: "09:00",
       endTime: "10:30",
-      room: "Lab-301",
+      room: "Lab-IBM-01 (Cloud Innovation Center)",
       academicYear: "2026-2027",
       semester: 1,
       isPublished: true,
@@ -390,17 +361,33 @@ async function seed() {
       updatedAt: now,
     },
     {
-      id: "tt_cyb301_tue",
-      courseId: "crs_cyb301",
-      subjectId: "sub_cyb301",
+      id: "tt_tat_rob_tue",
+      courseId: "crs_tat_rob",
+      subjectId: "sub_tat_rob",
       teacherId: "usr_faculty2",
       sectionCode: "A",
       dayOfWeek: "Tuesday",
       startTime: "11:00",
       endTime: "12:30",
-      room: "Cyber-Lab-2",
+      room: "Workshop-TT-A (Tata Robotics & Smart Mfg)",
       academicYear: "2026-2027",
-      semester: 5,
+      semester: 1,
+      isPublished: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: "tt_ansys_wed",
+      courseId: "crs_tat_ev",
+      subjectId: "sub_tat_ev",
+      teacherId: "usr_faculty2",
+      sectionCode: "A",
+      dayOfWeek: "Wednesday",
+      startTime: "14:00",
+      endTime: "15:30",
+      room: "Lab-ANSYS-01 (Simulation Center)",
+      academicYear: "2026-2027",
+      semester: 3,
       isPublished: true,
       createdAt: now,
       updatedAt: now,
@@ -422,30 +409,30 @@ async function seed() {
     }
   }
 
-  // 8. SEED SYLLABI
-  console.log("📋 Seeding syllabi...");
+  // 7. SEED SYLLABI
+  console.log("📋 Seeding LTSU industry-integrated syllabi...");
   const seedSyllabi = [
     {
-      id: "syl_cs101",
-      courseId: "crs_cs101",
-      subjectId: "sub_cs101",
+      id: "syl_ibm_ccv",
+      courseId: "crs_ibm_ccv",
+      subjectId: "sub_ibm_ccv",
       teacherId: "usr_faculty1",
-      content: "Module 1: Intro to Binary Logic. Module 2: Control Flow. Module 3: Functions & Memory.",
-      objectives: "Develop structural problem solving using high level languages.",
-      textbooks: "Introduction to Computation and Programming Using Python (Guttag)",
-      assessmentMethod: "Quizzes (20%), Midterm (30%), Final Exam (50%)",
+      content: "Unit 1: Cloud Architecture Foundations. Unit 2: Virtualization & Hypervisors. Unit 3: Containerization with Docker & Podman. Unit 4: RedHat OpenShift Enterprise Clusters. Unit 5: Industry Capstone Project with IBM Cloud Services.",
+      objectives: "Equip students with enterprise-grade cloud deployment, serverless scaling, and microservices architecture certified by IBM.",
+      textbooks: "Cloud Computing Architecture (IBM Redbooks), OpenShift in Action (Manning)",
+      assessmentMethod: "Quizzes (20%), Practical Skill Lab Examination (30%), End Term Exam (50%)",
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "syl_cyb301",
-      courseId: "crs_cyb301",
-      subjectId: "sub_cyb301",
+      id: "syl_tat_rob",
+      courseId: "crs_tat_rob",
+      subjectId: "sub_tat_rob",
       teacherId: "usr_faculty2",
-      content: "Module 1: Classical Ciphers. Module 2: Block Ciphers & AES. Module 3: Asymmetric RSA & ECC. Module 4: Hash Functions & Zero Knowledge Proofs.",
-      objectives: "Understand mathematical underpinnings and practical implementation of modern cryptography.",
-      textbooks: "Cryptography and Network Security (William Stallings)",
-      assessmentMethod: "Lab Exercises (30%), Midterm (30%), Term Project (40%)",
+      content: "Unit 1: Industrial Robotics Fundamentals. Unit 2: Kinematic Models & End-Effectors. Unit 3: PLC Automation and SCADA Integration. Unit 4: Computer Vision for Pick-and-Place Systems. Unit 5: Industry 4.0 Smart Manufacturing Cell Implementation.",
+      objectives: "Develop industry-ready engineers proficient in automated manufacturing lines and robotic cell operation directly supervised by Tata Technologies experts.",
+      textbooks: "Industrial Robotics & Automation (Tata Technologies Press), Robot Modeling & Control (Spong)",
+      assessmentMethod: "Continuous Lab Assessment (30%), Mid-Term Evaluation (20%), Final Project Demonstration (50%)",
       createdAt: now,
       updatedAt: now,
     },
@@ -466,14 +453,14 @@ async function seed() {
     }
   }
 
-  // 9. SEED ASSESSMENTS AND MARKS
-  console.log("📊 Seeding assessments and marks...");
+  // 8. SEED ASSESSMENTS & MARKS
+  console.log("📊 Seeding assessments & marks...");
   const seedAssessments = [
     {
-      id: "asm_cs101_mid",
-      courseId: "crs_cs101",
+      id: "asm_ibm_lab_eval",
+      courseId: "crs_ibm_ccv",
       teacherId: "usr_faculty1",
-      title: "CS101 Midterm Examination",
+      title: "IBM Cloud OpenShift Cluster Practical Exam",
       type: "midterm",
       maxMarks: 100,
       weightage: 30,
@@ -483,10 +470,10 @@ async function seed() {
       updatedAt: now,
     },
     {
-      id: "asm_cyb301_quiz1",
-      courseId: "crs_cyb301",
+      id: "asm_tat_rob_quiz",
+      courseId: "crs_tat_rob",
       teacherId: "usr_faculty2",
-      title: "Cryptography Quiz 1",
+      title: "PLC Automation & Arm Kinematics Quiz",
       type: "quiz",
       maxMarks: 25,
       weightage: 10,
@@ -514,16 +501,16 @@ async function seed() {
 
   const seedMarks = [
     {
-      id: "mrk_std1_mid",
-      assessmentId: "asm_cs101_mid",
+      id: "mrk_simran_ibm",
+      assessmentId: "asm_ibm_lab_eval",
       studentId: "usr_student1",
-      courseId: "crs_cs101",
+      courseId: "crs_ibm_ccv",
       assessmentType: "midterm",
-      assessmentName: "CS101 Midterm Examination",
+      assessmentName: "IBM Cloud OpenShift Cluster Practical Exam",
       maxMarks: 100,
-      marksObtained: 92,
-      grade: "A",
-      feedbackNotes: "Outstanding algorithmic efficiency and clean structure.",
+      marksObtained: 94,
+      grade: "A+",
+      feedbackNotes: "Exemplary zero-downtime cluster deployment and microservice routing.",
       recordedBy: "usr_faculty1",
       recordedAt: now,
       status: "published",
@@ -531,16 +518,16 @@ async function seed() {
       updatedAt: now,
     },
     {
-      id: "mrk_std2_quiz1",
-      assessmentId: "asm_cyb301_quiz1",
+      id: "mrk_gurpreet_rob",
+      assessmentId: "asm_tat_rob_quiz",
       studentId: "usr_student2",
-      courseId: "crs_cyb301",
+      courseId: "crs_tat_rob",
       assessmentType: "quiz",
-      assessmentName: "Cryptography Quiz 1",
+      assessmentName: "PLC Automation & Arm Kinematics Quiz",
       maxMarks: 25,
-      marksObtained: 24,
-      grade: "A+",
-      feedbackNotes: "Flawless modular arithmetic and cipher breakdown.",
+      marksObtained: 23,
+      grade: "A",
+      feedbackNotes: "Precise ladder logic diagrams and inverse kinematics calculations.",
       recordedBy: "usr_faculty2",
       recordedAt: now,
       status: "published",
@@ -564,28 +551,28 @@ async function seed() {
     }
   }
 
-  // 10. SEED ATTENDANCE RECORDS
+  // 9. SEED ATTENDANCE RECORDS
   console.log("📅 Seeding attendance records...");
   const seedAttendance = [
     {
-      id: "att_std1_day1",
+      id: "att_simran_day1",
       studentId: "usr_student1",
-      courseId: "crs_cs101",
+      courseId: "crs_ibm_ccv",
       classDate: "2026-09-08",
       status: "present",
-      remarks: "On time and participated actively in lab exercises",
+      remarks: "Completed OpenShift container configuration lab on time",
       recordedBy: "usr_faculty1",
       recordedAt: now,
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "att_std2_day1",
+      id: "att_gurpreet_day1",
       studentId: "usr_student2",
-      courseId: "crs_cyb301",
+      courseId: "crs_tat_rob",
       classDate: "2026-09-09",
       status: "present",
-      remarks: "Completed cryptanalysis demonstration",
+      remarks: "Demonstrated 6-axis robotic arm pick-and-place calibration",
       recordedBy: "usr_faculty2",
       recordedAt: now,
       createdAt: now,
@@ -608,37 +595,48 @@ async function seed() {
     }
   }
 
-  // 11. SEED ADMISSIONS ENQUIRIES & APPLICATIONS
-  console.log("🏢 Seeding admission enquiries & applications...");
+  // 10. SEED ADMISSIONS ENQUIRIES & APPLICATIONS (LTSU-SET 2026)
+  console.log("🏢 Seeding LTSU admission enquiries & applications...");
   const seedEnquiries = [
     {
-      id: "enq_seed_001",
-      email: "david.miller@example.com",
-      fullName: "David Miller",
-      phone: "555-0199",
-      interestedProgram: "Cybersecurity",
+      id: "enq_ltsu_001",
+      email: "jaspreet.singh@example.com",
+      fullName: "Jaspreet Singh",
+      phone: "+91 98140-12345",
+      interestedProgram: "B.Tech CSE (Cloud Computing) - IBM",
       enquiryDate: now,
       status: "converted",
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "enq_seed_002",
-      email: "elena.rostova@example.com",
-      fullName: "Elena Rostova",
-      phone: "555-0188",
-      interestedProgram: "Computer Science",
+      id: "enq_ltsu_002",
+      email: "harleen.kaur@example.com",
+      fullName: "Harleen Kaur",
+      phone: "+91 98765-43210",
+      interestedProgram: "B.Tech Mechanical (Robotics & Automation) - Tata Tech",
       enquiryDate: now,
       status: "contacted",
       createdAt: now,
       updatedAt: now,
     },
     {
-      id: "enq_seed_003",
-      email: "frank.wright@example.com",
-      fullName: "Frank Wright",
-      phone: "555-0177",
-      interestedProgram: "Computer Science",
+      id: "enq_ltsu_003",
+      email: "rohan.sharma@example.com",
+      fullName: "Rohan Sharma",
+      phone: "+91 94170-55667",
+      interestedProgram: "BBA (Financial Technology) - NSDC",
+      enquiryDate: now,
+      status: "new",
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: "enq_ltsu_004",
+      email: "navjot.kaur@example.com",
+      fullName: "Navjot Kaur",
+      phone: "+91 98888-22334",
+      interestedProgram: "B.Pharmacy - Rayat Institute",
       enquiryDate: now,
       status: "new",
       createdAt: now,
@@ -663,21 +661,22 @@ async function seed() {
 
   const seedApplications = [
     {
-      id: "app_seed_001",
-      enquiryId: "enq_seed_001",
+      id: "app_ltsu_001",
+      enquiryId: "enq_ltsu_001",
       studentId: "usr_student1",
       email: "student1@university.edu",
-      fullName: "Alice Smith",
-      dateOfBirth: "2005-04-12",
-      address: "42 Turing Way, Cambridge",
-      phone: "555-0123",
-      programAppliedFor: "Computer Science",
+      fullName: "Simran Kaur",
+      dateOfBirth: "2006-03-14",
+      address: "Model Town, Ropar, Punjab 140001",
+      phone: "+91 98150-11223",
+      programAppliedFor: "B.Tech CSE (Cloud Computing) - IBM",
       qualifications: JSON.stringify([
-        { degree: "High School Diploma", institution: "North Academy", score: "94.5%", year: 2024 }
+        { degree: "12th Standard (Non-Medical)", institution: "Punjab School Education Board", score: "96.4%", year: 2025 },
+        { degree: "LTSU-SET 2026", institution: "Lamrin Tech Skills University", score: "Rank 8 (Percentile: 99.2)", year: 2026 }
       ]),
       applicationDate: "2026-08-15",
       status: "enrolled",
-      meritScore: 94.5,
+      meritScore: 96.4,
       meritRank: 1,
       isMeritPublished: true,
       approvedBy: "usr_admin",
@@ -687,21 +686,22 @@ async function seed() {
       updatedAt: now,
     },
     {
-      id: "app_seed_002",
+      id: "app_ltsu_002",
       enquiryId: null,
       studentId: "usr_student2",
       email: "student2@university.edu",
-      fullName: "Bob Johnson",
-      dateOfBirth: "2004-11-23",
-      address: "88 Hopper Ave, Arlington",
-      phone: "555-0144",
-      programAppliedFor: "Cybersecurity",
+      fullName: "Gurpreet Singh",
+      dateOfBirth: "2005-11-20",
+      address: "Urban Estate, Phase 2, Patiala, Punjab 147002",
+      phone: "+91 98720-99881",
+      programAppliedFor: "B.Tech Mechanical (Robotics & Automation) - Tata Tech",
       qualifications: JSON.stringify([
-        { degree: "High School Diploma", institution: "West High", score: "89.0%", year: 2024 }
+        { degree: "12th Standard (Non-Medical)", institution: "CBSE New Delhi", score: "91.8%", year: 2025 },
+        { degree: "LTSU-SET 2026", institution: "Lamrin Tech Skills University", score: "Rank 24 (Percentile: 97.4)", year: 2026 }
       ]),
       applicationDate: "2026-08-18",
       status: "enrolled",
-      meritScore: 89.0,
+      meritScore: 91.8,
       meritRank: 2,
       isMeritPublished: true,
       approvedBy: "usr_admin",
@@ -711,21 +711,21 @@ async function seed() {
       updatedAt: now,
     },
     {
-      id: "app_seed_003",
-      enquiryId: "enq_seed_002",
+      id: "app_ltsu_003",
+      enquiryId: "enq_ltsu_002",
       studentId: null,
-      email: "elena.rostova@example.com",
-      fullName: "Elena Rostova",
-      dateOfBirth: "2005-07-09",
-      address: "15 Cyber Square, Seattle",
-      phone: "555-0188",
-      programAppliedFor: "Computer Science",
+      email: "harleen.kaur@example.com",
+      fullName: "Harleen Kaur",
+      dateOfBirth: "2006-07-09",
+      address: "Sector 70, Mohali, Punjab 160071",
+      phone: "+91 98765-43210",
+      programAppliedFor: "B.Tech Mechanical (Robotics & Automation) - Tata Tech",
       qualifications: JSON.stringify([
-        { degree: "High School Diploma", institution: "St. Jude Collegiate", score: "91.2%", year: 2025 }
+        { degree: "12th Standard (Non-Medical)", institution: "ICSE Council", score: "88.5%", year: 2025 }
       ]),
       applicationDate: "2026-09-01",
       status: "under_review",
-      meritScore: 91.2,
+      meritScore: 88.5,
       meritRank: null,
       isMeritPublished: false,
       approvedBy: null,
@@ -751,30 +751,30 @@ async function seed() {
     }
   }
 
-  // 12. AUDIT LOG SEED ENTRY
-  console.log("🛡️ Seeding initial audit trail...");
-  const auditId = `aud_seed_${Date.now()}`;
+  // 11. AUDIT LOG ENTRY
+  console.log("🛡️ Recording LTSU initialization audit entry...");
+  const auditId = `aud_ltsu_${Date.now()}`;
   await db.insert(schema.auditLogs).values({
     id: auditId,
     actorId: "usr_admin",
     actorRole: "admin",
-    action: "DATABASE_INITIALIZATION_SEEDED",
+    action: "LTSU_CAMPUS_SEED_SYNCHRONIZED",
     resourceType: "database",
     resourceId: "turso",
-    previousState: "EMPTY",
-    newState: "SEEDED",
+    previousState: "GENERIC_DATA",
+    newState: "LTSU_AUTHENTIC_ANCHORS",
     details: JSON.stringify({
-      users: seedUsers.length,
-      courses: seedCourses.length,
-      enquiries: seedEnquiries.length,
-      applications: seedApplications.length,
+      institution: "Lamrin Tech Skills University Punjab",
+      partners: ["IBM", "Tata Technologies", "Ansys", "NSDC"],
+      coursesSeeded: seedCourses.length,
+      applicationsSeeded: seedApplications.length,
     }),
     ipAddress: "127.0.0.1",
     result: "SUCCESS",
     timestamp: now,
   });
 
-  console.log("✅ Turso database seed completed successfully!");
+  console.log("✅ Lamrin Tech Skills University Punjab database synchronization completed!");
 }
 
 seed().catch((err) => {

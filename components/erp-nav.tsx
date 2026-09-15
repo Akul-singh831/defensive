@@ -60,26 +60,59 @@ export function ErpNav({ currentModule }: ErpNavProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-neutral-800/80 bg-neutral-950/90 backdrop-blur-md">
+      {/* Top Institutional Notification Bar */}
+      <div className="w-full bg-neutral-900 border-b border-neutral-800 text-[11px] py-1 px-4 text-neutral-300">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              LTSU NOTICE
+            </span>
+            <span className="truncate text-neutral-300">
+              Scholarship Entrance Test LTSU-SET 2026 active. Industry admissions in progress for IBM CSE and Tata Technologies Mechatronics.
+            </span>
+          </div>
+          <div className="hidden lg:flex items-center gap-4 text-neutral-400">
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              UGC Act 1956 Sec 2(f) Approved
+            </span>
+            <span>Punjab State Act No. 22 of 2021</span>
+            <a
+              href="https://erp.ltsu.in/student-portal/login"
+              target="_blank"
+              rel="noreferrer"
+              className="text-emerald-400 hover:text-emerald-300 font-medium underline-offset-2 hover:underline"
+            >
+              Public Student Portal
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-40 w-full border-b border-neutral-800/80 bg-neutral-950/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo & University Brand */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-neutral-950 shadow-md shadow-emerald-500/20">
-                <GraduationCap className="w-5 h-5 text-neutral-950 stroke-[2.2]" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-600 text-neutral-950 shadow-md shadow-amber-500/20 font-black text-sm">
+                LTSU
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-bold tracking-tight text-neutral-100">
-                    Apex University
+                  <span className="text-sm sm:text-base font-bold tracking-tight text-neutral-100">
+                    Lamrin Tech Skills University
                   </span>
                   <span className="hidden sm:inline-block text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    ERP Core
+                    Punjab, Ropar
                   </span>
                 </div>
-                <p className="text-[11px] text-neutral-400 hidden sm:block">
-                  Enterprise Campus Information System
-                </p>
+                <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 hidden sm:flex">
+                  <span className="font-semibold text-neutral-300">Industry Anchors:</span>
+                  <span className="px-1 py-0.2 rounded bg-neutral-900 border border-neutral-800 text-[10px] text-sky-400">IBM</span>
+                  <span className="px-1 py-0.2 rounded bg-neutral-900 border border-neutral-800 text-[10px] text-blue-400">Tata Technologies</span>
+                  <span className="px-1 py-0.2 rounded bg-neutral-900 border border-neutral-800 text-[10px] text-amber-400">Ansys</span>
+                  <span className="px-1 py-0.2 rounded bg-neutral-900 border border-neutral-800 text-[10px] text-emerald-400">NSDC</span>
+                </div>
               </div>
             </div>
 
@@ -94,7 +127,7 @@ export function ErpNav({ currentModule }: ErpNavProps) {
                 }`}
               >
                 <ClipboardList className="w-3.5 h-3.5" />
-                <span>Admissions</span>
+                <span>Admissions ERP</span>
               </Link>
               <Link
                 href="/academic"
@@ -105,7 +138,7 @@ export function ErpNav({ currentModule }: ErpNavProps) {
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                <span>Academic</span>
+                <span>Academic ERP</span>
               </Link>
             </nav>
 

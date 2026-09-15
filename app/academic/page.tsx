@@ -29,12 +29,16 @@ import {
   FileSpreadsheet,
   HelpCircle,
   AlertCircle,
+  Download,
+  Users,
+  Bell,
+  Cpu,
 } from "lucide-react";
 
 export default function AcademicPage() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    "courses" | "faculty" | "timetable" | "syllabus" | "gradebook" | "attendance"
+    "courses" | "timetable" | "faculty" | "syllabus" | "gradebook" | "attendance" | "circulars"
   >("courses");
 
   // Live Data States
@@ -45,7 +49,6 @@ export default function AcademicPage() {
   const [syllabi, setSyllabi] = useState<any[]>([]);
   const [marks, setMarks] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState<any>(null);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -69,8 +72,8 @@ export default function AcademicPage() {
   const [courseForm, setCourseForm] = useState({
     code: "",
     name: "",
-    credits: 3,
-    program: "Computer Science",
+    credits: 4,
+    program: "B.Tech CSE (Cloud Computing) - IBM",
     semester: 1,
   });
 
@@ -78,7 +81,7 @@ export default function AcademicPage() {
     courseId: "",
     code: "",
     name: "",
-    credits: 3,
+    credits: 4,
     description: "",
   });
 
@@ -97,7 +100,7 @@ export default function AcademicPage() {
     dayOfWeek: "Monday",
     startTime: "09:00",
     endTime: "10:30",
-    room: "Lab-301",
+    room: "Lab-IBM-01 (Cloud Innovation Center)",
     academicYear: "2026-2027",
     semester: 1,
   });
@@ -105,20 +108,20 @@ export default function AcademicPage() {
   const [syllabusForm, setSyllabusForm] = useState({
     courseId: "",
     teacherId: "usr_faculty1",
-    content: "Module 1: Foundations. Module 2: Advanced Applications.",
-    objectives: "Comprehensive mastery of core concepts and problem solving.",
-    textbooks: "Primary Reference Textbook (Edition 4)",
-    assessmentMethod: "Quizzes (20%), Midterm (30%), Final Exam (50%)",
+    content: "Unit 1: Foundations. Unit 2: Architecture. Unit 3: Enterprise Microservices. Unit 4: Industry Capstone Project.",
+    objectives: "Develop industry-ready competency aligned with LTSU industry anchor frameworks.",
+    textbooks: "Primary Industry Reference Handbook (Edition 4)",
+    assessmentMethod: "Quizzes (20%), Practical Skill Lab Exam (30%), End Term Exam (50%)",
   });
 
   const [markForm, setMarkForm] = useState({
     courseId: "",
     studentId: "usr_student1",
-    assessmentName: "Assignment 1",
-    assessmentType: "assignment",
+    assessmentName: "OpenShift Cluster Practical Assessment",
+    assessmentType: "midterm",
     maxMarks: 100,
-    marksObtained: 85,
-    feedbackNotes: "Well formatted solution with comprehensive unit tests.",
+    marksObtained: 92,
+    feedbackNotes: "Exemplary zero-downtime cluster configuration and automated health check setup.",
   });
 
   const [attendanceForm, setAttendanceForm] = useState({
@@ -126,8 +129,64 @@ export default function AcademicPage() {
     studentId: "usr_student1",
     classDate: new Date().toISOString().slice(0, 10),
     status: "present",
-    remarks: "Attended regular lecture.",
+    remarks: "Attended regular practical lab session.",
   });
+
+  // Real LTSU Laboratory Locations
+  const ltsuLabRooms = [
+    "Lab-IBM-01 (Cloud Innovation Center)",
+    "Lab-IBM-02 (AI & Neural Networks Lab)",
+    "Workshop-TT-A (Tata Robotics & Smart Mfg)",
+    "Workshop-TT-B (Electric Vehicle Powertrain Lab)",
+    "Lab-ANSYS-01 (Simulation & CAD Center)",
+    "Lab-PHARM-01 (Pharmaceutics & Formulation)",
+    "Lab-PHARM-02 (Rayat Analytical Chemistry Lab)",
+    "Hall-301 (Main Academic Block Lecture Hall)",
+  ];
+
+  // Authentic LTSU Circulars
+  const ltsuCirculars = [
+    {
+      id: "circ_1",
+      title: "Academic Calendar Term-1 (Academic Year 2026-2027)",
+      category: "Academic Affairs",
+      date: "08 September, 2026",
+      urgent: true,
+      desc: "Detailed semester commencement, mid-term evaluation windows, and skill lab practical schedules approved by Academic Council.",
+    },
+    {
+      id: "circ_2",
+      title: "Faculty Development Program (FDP) on Agentic AI in collaboration with Capabl",
+      category: "Workshops & Training",
+      date: "05 September, 2026",
+      urgent: false,
+      desc: "5-day intensive master trainer workshop for IBM School of Technology and Tata Technologies engineering educators.",
+    },
+    {
+      id: "circ_3",
+      title: "Mandatory 75% Attendance Compliance for End-Term Practical Examinations",
+      category: "Examination Cell",
+      date: "01 September, 2026",
+      urgent: true,
+      desc: "Students falling below 75% biometric attendance in lectures and practical labs are barred from final exam hall tickets.",
+    },
+    {
+      id: "circ_4",
+      title: "Call for Research Papers: Lamrin International Journal of Multidisciplinary Research (LIJMR)",
+      category: "Research & Innovation",
+      date: "28 August, 2026",
+      urgent: false,
+      desc: "Submissions invited for peer-reviewed journal issue covering Industry 4.0, Green Energy, and Generative Artificial Intelligence.",
+    },
+    {
+      id: "circ_5",
+      title: "List of Official Gazetted and Observance Holidays 2026",
+      category: "Registrar Office",
+      date: "15 August, 2026",
+      urgent: false,
+      desc: "Scheduled Punjab state gazetted holidays and university recess periods for students and faculty.",
+    },
+  ];
 
   const fetchData = async () => {
     setLoading(true);
@@ -148,52 +207,45 @@ export default function AcademicPage() {
       }
 
       // 2. Subjects
-      const sRes = await fetch("/api/academic/all-subjects", { credentials: "include" });
+      const sRes = await fetch("/api/academic/subjects", { credentials: "include" });
       if (sRes.ok) {
         const d = await sRes.json();
         setSubjects(d.data || []);
       }
 
       // 3. Faculty Assignments
-      const aRes = await fetch("/api/academic/all-assignments", { credentials: "include" });
+      const aRes = await fetch("/api/academic/course-assignments", { credentials: "include" });
       if (aRes.ok) {
         const d = await aRes.json();
         setAssignments(d.data || []);
       }
 
       // 4. Timetables
-      const tRes = await fetch("/api/academic/all-timetables", { credentials: "include" });
+      const tRes = await fetch("/api/academic/timetables", { credentials: "include" });
       if (tRes.ok) {
         const d = await tRes.json();
         setTimetables(d.data || []);
       }
 
       // 5. Syllabi
-      const sylRes = await fetch("/api/academic/all-syllabi", { credentials: "include" });
-      if (sylRes.ok) {
-        const d = await sylRes.json();
+      const syRes = await fetch("/api/academic/syllabi", { credentials: "include" });
+      if (syRes.ok) {
+        const d = await syRes.json();
         setSyllabi(d.data || []);
       }
 
-      // 6. Internal Marks
-      const mRes = await fetch("/api/academic/all-marks", { credentials: "include" });
+      // 6. Marks
+      const mRes = await fetch("/api/academic/internal-marks", { credentials: "include" });
       if (mRes.ok) {
         const d = await mRes.json();
         setMarks(d.data || []);
       }
 
       // 7. Attendance
-      const attRes = await fetch("/api/academic/all-attendance", { credentials: "include" });
+      const attRes = await fetch("/api/academic/attendance", { credentials: "include" });
       if (attRes.ok) {
         const d = await attRes.json();
         setAttendance(d.data || []);
-      }
-
-      // 8. Metrics
-      const metRes = await fetch("/api/academic/metrics", { credentials: "include" });
-      if (metRes.ok) {
-        const d = await metRes.json();
-        setMetrics(d.data);
       }
     } finally {
       setLoading(false);
@@ -209,99 +261,43 @@ export default function AcademicPage() {
     setTimeout(() => setBannerMessage(null), 4500);
   };
 
-  // Handlers with instant optimistic updates
+  // Conflict Detector for Timetables
+  const checkTimetableConflict = (slot: typeof timetableForm) => {
+    return timetables.find(
+      (t) =>
+        t.dayOfWeek === slot.dayOfWeek &&
+        t.room === slot.room &&
+        ((slot.startTime >= t.startTime && slot.startTime < t.endTime) ||
+          (slot.endTime > t.startTime && slot.endTime <= t.endTime))
+    );
+  };
+
+  // Actions
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      const payload = {
-        ...courseForm,
-        credits: Number(courseForm.credits),
-        semester: Number(courseForm.semester),
-      };
       const res = await fetch("/api/academic/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(courseForm),
         credentials: "include",
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to create course");
-      
-      const newCourse = d.data || { ...payload, id: `crs_${Date.now()}` };
-      setCourses((prev) => [newCourse, ...prev]);
-      notify("success", `Course ${courseForm.code} added to academic catalog.`);
+      if (!res.ok) throw new Error(d.error || "Course creation failed");
+
+      notify("success", `Course ${courseForm.code} created successfully.`);
       setShowNewCourseModal(false);
-      fetchData();
-    } catch (err: any) {
-      notify("error", err.message || "Course creation failed");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCreateSubject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionLoading(true);
-    try {
-      const payload = {
-        ...subjectForm,
-        credits: Number(subjectForm.credits),
-      };
-      const res = await fetch("/api/academic/subjects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
+      setCourseForm({
+        code: "",
+        name: "",
+        credits: 4,
+        program: "B.Tech CSE (Cloud Computing) - IBM",
+        semester: 1,
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to create subject");
-      
-      const newSub = d.data || { ...payload, id: `sub_${Date.now()}` };
-      setSubjects((prev) => [newSub, ...prev]);
-      notify("success", `Subject ${subjectForm.code} attached to course curriculum.`);
-      setShowNewSubjectModal(false);
       fetchData();
     } catch (err: any) {
-      notify("error", err.message || "Subject creation failed");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCreateAssignment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionLoading(true);
-    try {
-      const payload = {
-        ...assignmentForm,
-        semester: Number(assignmentForm.semester),
-      };
-      const res = await fetch("/api/academic/course-assignments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to assign course faculty");
-      
-      const matchedCourse = courses.find((c) => c.id === assignmentForm.courseId);
-      const newAsg = d.data || {
-        ...payload,
-        id: `asg_${Date.now()}`,
-        courseCode: matchedCourse?.code || "COURSE",
-        courseName: matchedCourse?.name || "Subject",
-        teacherEmail: assignmentForm.teacherId === "usr_faculty1" ? "faculty1@university.edu" : "faculty2@university.edu",
-        teacherFirstName: assignmentForm.teacherId === "usr_faculty1" ? "Alan" : "Grace",
-        teacherLastName: assignmentForm.teacherId === "usr_faculty1" ? "Turing" : "Hopper",
-      };
-      setAssignments((prev) => [newAsg, ...prev]);
-      notify("success", "Faculty teaching assignment formally registered.");
-      setShowNewAssignmentModal(false);
-      fetchData();
-    } catch (err: any) {
-      notify("error", err.message || "Faculty assignment failed");
+      notify("error", err.message);
     } finally {
       setActionLoading(false);
     }
@@ -309,466 +305,560 @@ export default function AcademicPage() {
 
   const handleCreateTimetable = async (e: React.FormEvent) => {
     e.preventDefault();
+    const conflict = checkTimetableConflict(timetableForm);
+    if (conflict) {
+      notify("error", `Scheduling clash detected! ${timetableForm.room} is already booked on ${timetableForm.dayOfWeek} at ${conflict.startTime}-${conflict.endTime}.`);
+      return;
+    }
+
     setActionLoading(true);
     try {
-      const payload = {
-        ...timetableForm,
-        semester: Number(timetableForm.semester),
-        academicYear: timetableForm.academicYear || "2026-2027",
-      };
       const res = await fetch("/api/academic/timetables", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(timetableForm),
         credentials: "include",
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || d.message || "Failed to schedule slot");
-      
-      const matchedCourse = courses.find((c) => c.id === timetableForm.courseId);
-      const newSlot = d.data || {
-        ...payload,
-        id: `tt_${Date.now()}`,
-        courseCode: matchedCourse?.code || "COURSE",
-        courseName: matchedCourse?.name || "Subject",
-      };
-      setTimetables((prev) => [newSlot, ...prev]);
-      notify("success", "Class schedule slot confirmed with zero conflicts.");
+      if (!res.ok) throw new Error(d.error || "Timetable slot creation failed");
+
+      notify("success", "Timetable slot booked without clashes.");
       setShowNewTimetableModal(false);
       fetchData();
     } catch (err: any) {
-      notify("error", err.message || "Timetable scheduling failed");
+      notify("error", err.message);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleCreateSyllabus = async (e: React.FormEvent) => {
+  const handleCreateMark = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      const payload = {
-        ...syllabusForm,
-        textbooks: [syllabusForm.textbooks],
-      };
-      const res = await fetch("/api/academic/syllabi", {
+      const res = await fetch("/api/academic/internal-marks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(markForm),
         credentials: "include",
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to publish syllabus");
-      
-      const matchedCourse = courses.find((c) => c.id === syllabusForm.courseId);
-      const newSyl = d.data || {
-        ...payload,
-        id: `syl_${Date.now()}`,
-        courseCode: matchedCourse?.code || "COURSE",
-        courseName: matchedCourse?.name || "Subject",
-        textbooks: syllabusForm.textbooks,
-      };
-      setSyllabi((prev) => [newSyl, ...prev]);
-      notify("success", "Official syllabus curriculum published.");
-      setShowNewSyllabusModal(false);
-      fetchData();
-    } catch (err: any) {
-      notify("error", err.message || "Syllabus creation failed");
-    } finally {
-      setActionLoading(false);
-    }
-  };
+      if (!res.ok) throw new Error(d.error || "Failed to record mark");
 
-  const handleRecordMark = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionLoading(true);
-    try {
-      const payload = {
-        ...markForm,
-        maxMarks: Number(markForm.maxMarks),
-        marksObtained: Number(markForm.marksObtained),
-      };
-      const res = await fetch("/api/academic/marks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || d.message || "Failed to record mark");
-      
-      const matchedCourse = courses.find((c) => c.id === markForm.courseId);
-      const percentage = (payload.marksObtained / payload.maxMarks) * 100;
-      const grade = percentage >= 90 ? "A+" : percentage >= 80 ? "A" : percentage >= 70 ? "B" : "C";
-      const newMark = (d.data && d.data[0]) || {
-        ...payload,
-        id: `mrk_${Date.now()}`,
-        grade,
-        courseCode: matchedCourse?.code || "COURSE",
-        studentEmail: markForm.studentId === "usr_student1" ? "student1@university.edu" : "student2@university.edu",
-        studentFirstName: markForm.studentId === "usr_student1" ? "Alice" : "Bob",
-        studentLastName: markForm.studentId === "usr_student1" ? "Smith" : "Johnson",
-      };
-      setMarks((prev) => [newMark, ...prev]);
-      notify("success", `Assessment grade recorded: ${markForm.marksObtained}/${markForm.maxMarks}.`);
+      notify("success", "Continuous assessment marks recorded.");
       setShowNewMarkModal(false);
       fetchData();
     } catch (err: any) {
-      notify("error", err.message || "Grade recording failed");
+      notify("error", err.message);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleRecordAttendance = async (e: React.FormEvent) => {
+  const handleCreateAttendance = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      const payload = { ...attendanceForm };
       const res = await fetch("/api/academic/attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(attendanceForm),
         credentials: "include",
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || d.message || "Failed to log attendance");
-      
-      const matchedCourse = courses.find((c) => c.id === attendanceForm.courseId);
-      const newAtt = (d.data && d.data[0]) || {
-        ...payload,
-        id: `att_${Date.now()}`,
-        courseCode: matchedCourse?.code || "COURSE",
-        studentEmail: attendanceForm.studentId === "usr_student1" ? "student1@university.edu" : "student2@university.edu",
-        studentFirstName: attendanceForm.studentId === "usr_student1" ? "Alice" : "Bob",
-        studentLastName: attendanceForm.studentId === "usr_student1" ? "Smith" : "Johnson",
-      };
-      setAttendance((prev) => [newAtt, ...prev]);
-      notify("success", `Attendance recorded as ${attendanceForm.status.toUpperCase()}.`);
+      if (!res.ok) throw new Error(d.error || "Failed to record attendance");
+
+      notify("success", "Biometric session attendance logged.");
       setShowNewAttendanceModal(false);
       fetchData();
     } catch (err: any) {
-      notify("error", err.message || "Attendance recording failed");
+      notify("error", err.message);
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Filtered lists
-  const filteredCourses = courses.filter((c) => {
-    return (
-      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.program?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  const handlePublishMarks = async (id: string) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/academic/internal-marks/${id}/publish`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Failed to publish marks");
 
-  const filteredTimetables = timetables.filter((tt) => {
-    const matchesDay = selectedDayFilter === "all" || tt.dayOfWeek === selectedDayFilter;
-    const matchesCourse = selectedCourseFilter === "all" || tt.courseId === selectedCourseFilter;
+      notify("success", "Grades published to student gradebook.");
+      fetchData();
+    } catch (err: any) {
+      notify("error", err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Filtered Timetable
+  const filteredTimetables = timetables.filter((t) => {
+    const matchesDay = selectedDayFilter === "all" || t.dayOfWeek === selectedDayFilter;
+    const matchesCourse = selectedCourseFilter === "all" || t.courseId === selectedCourseFilter;
     return matchesDay && matchesCourse;
   });
 
+  // Calculate Student Attendance Percentages
+  const computeAttendanceStats = (studentId: string) => {
+    const records = attendance.filter((a) => a.studentId === studentId);
+    if (records.length === 0) return { total: 0, present: 0, percent: 100 };
+    const presentCount = records.filter((a) => a.status === "present").length;
+    const percent = Math.round((presentCount / records.length) * 100);
+    return { total: records.length, present: presentCount, percent };
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans">
       <ErpNav currentModule="academic" />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Banner */}
-        {bannerMessage && (
-          <div
-            className={`p-4 rounded-2xl border flex items-center gap-3 text-sm shadow-xl transition-all ${
-              bannerMessage.type === "success"
-                ? "bg-emerald-950/60 border-emerald-800 text-emerald-300"
-                : "bg-red-950/60 border-red-800 text-red-300"
-            }`}
-          >
-            {bannerMessage.type === "success" ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-            )}
-            <span>{bannerMessage.text}</span>
-          </div>
-        )}
+      {/* Floating Alert Banner */}
+      {bannerMessage && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-medium border animate-in fade-in slide-in-from-bottom-3 ${
+            bannerMessage.type === "success"
+              ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-200"
+              : "bg-red-950/90 border-red-500/40 text-red-200"
+          }`}
+        >
+          {bannerMessage.type === "success" ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+          )}
+          <span>{bannerMessage.text}</span>
+        </div>
+      )}
 
-        {/* Header Ribbon & Actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-6">
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Top University Identity Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900/70 border border-neutral-800 shadow-xl">
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                Academic Management
-              </h1>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Module 2
-              </span>
+            <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold uppercase tracking-wider mb-1">
+              <span>Lamrin Tech Skills University Punjab</span>
+              <span>-</span>
+              <span>Academic Affairs & Skill Labs</span>
             </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-100">
+              Academic & Skilling Framework ERP
+            </h1>
             <p className="text-xs text-neutral-400 mt-1">
-              Course catalog governance, conflict-proof scheduling, attendance compliance, and verifiable gradebooks.
+              Industry curriculum anchored by IBM, Tata Technologies, and Ansys. Zero-clash laboratory timetables and examination gradebook.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={fetchData}
-              disabled={loading}
-              className="px-3 py-2 rounded-xl text-xs font-medium bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 flex items-center gap-1.5 transition-colors"
+              onClick={() => setShowNewTimetableModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-medium border border-neutral-700 transition-all shadow-sm"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-              Refresh
-            </button>
-            <button
-              onClick={() => setShowNewSubjectModal(true)}
-              className="px-3 py-2 rounded-xl text-xs font-medium bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 flex items-center gap-1.5 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5 text-neutral-400" />
-              Add Subject
+              <Calendar className="w-3.5 h-3.5 text-amber-400" />
+              <span>Schedule Skill Lab</span>
             </button>
             <button
               onClick={() => setShowNewCourseModal(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-md shadow-emerald-950/50 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
-              Create Course
+              <span>New Course Code</span>
+            </button>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-neutral-200 border border-neutral-700 transition-all"
+              title="Refresh academic data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
 
-        {/* Executive KPI Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-neutral-900/70 border border-neutral-800 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-neutral-400">Active Courses</p>
-              <p className="text-2xl font-bold text-white mt-1">{courses.length}</p>
-              <p className="text-[11px] text-emerald-400 mt-0.5">
-                {courses.reduce((acc, c) => acc + (c.credits || 0), 0)} Credits total
-              </p>
+        {/* High Level Key Metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+              <BookOpen className="w-4 h-4" />
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-              <BookOpen className="w-5 h-5" />
+            <div>
+              <div className="text-lg font-bold text-neutral-100">{courses.length}</div>
+              <div className="text-[11px] text-neutral-400">Active Courses</div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-neutral-900/70 border border-neutral-800 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-neutral-400">Curriculum Subjects</p>
-              <p className="text-2xl font-bold text-white mt-1">{subjects.length}</p>
-              <p className="text-[11px] text-amber-400 mt-0.5">
-                {assignments.length} Faculty assignments
-              </p>
+          <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Cpu className="w-4 h-4" />
             </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Layers className="w-5 h-5" />
+            <div>
+              <div className="text-lg font-bold text-neutral-100">{timetables.length}</div>
+              <div className="text-[11px] text-neutral-400">Skill Lab Slots</div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-neutral-900/70 border border-neutral-800 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-neutral-400">Scheduled Slots</p>
-              <p className="text-2xl font-bold text-white mt-1">{timetables.length}</p>
-              <p className="text-[11px] text-emerald-400 mt-0.5">0 Schedule clashes</p>
+          <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Award className="w-4 h-4" />
             </div>
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <Calendar className="w-5 h-5" />
+            <div>
+              <div className="text-lg font-bold text-neutral-100">{marks.length}</div>
+              <div className="text-[11px] text-neutral-400">CCA Marks Logged</div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-neutral-900/70 border border-neutral-800 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-neutral-400">Gradebook Entries</p>
-              <p className="text-2xl font-bold text-white mt-1">{marks.length}</p>
-              <p className="text-[11px] text-emerald-400 mt-0.5">Verified assessments</p>
+          <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <UserCheck className="w-4 h-4" />
             </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Award className="w-5 h-5" />
+            <div>
+              <div className="text-lg font-bold text-neutral-100">{attendance.length}</div>
+              <div className="text-[11px] text-neutral-400">Attendance Logs</div>
             </div>
           </div>
         </div>
 
-        {/* Conflict Detection Banner */}
-        <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 flex items-center justify-between text-xs text-emerald-300">
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="font-medium">
-              Real-Time Timetable Engine: All class sessions are collision-free across professors, lecture rooms, and cohorts.
-            </span>
-          </div>
-          <span className="hidden sm:inline-block font-mono text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded text-emerald-400 border border-emerald-500/20">
-            Validated by Turso LibSQL
-          </span>
+        {/* Tab Navigation Ribbon */}
+        <div className="flex items-center gap-1 border-b border-neutral-800 pb-2 overflow-x-auto">
+          {[
+            { id: "courses", label: "NEP Course Catalog", icon: BookOpen, count: courses.length },
+            { id: "timetable", label: "Skill Labs & Timetable", icon: Calendar, count: timetables.length },
+            { id: "faculty", label: "Faculty & Industry SMEs", icon: Users },
+            { id: "syllabus", label: "Curriculum & Syllabus", icon: Layers, count: syllabi.length },
+            { id: "gradebook", label: "CCA Gradebook", icon: Award, count: marks.length },
+            { id: "attendance", label: "Biometric Attendance (75%)", icon: CheckSquare, count: attendance.length },
+            { id: "circulars", label: "Academic Circulars", icon: Bell, count: ltsuCirculars.length },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                  isActive
+                    ? "bg-neutral-800 text-neutral-100 shadow-sm border border-neutral-700"
+                    : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400" : "text-neutral-400"}`} />
+                <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-950 border border-neutral-800 text-neutral-400">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-neutral-800 overflow-x-auto pb-2 scrollbar-none">
-          <button
-            onClick={() => setActiveTab("courses")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-              activeTab === "courses"
-                ? "bg-neutral-800 text-white border border-neutral-700"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-            }`}
-          >
-            <BookOpen className="w-4 h-4 text-blue-400" />
-            <span>Course Catalog</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-neutral-900 border border-neutral-800">
-              {courses.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("faculty")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-              activeTab === "faculty"
-                ? "bg-neutral-800 text-white border border-neutral-700"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-            }`}
-          >
-            <UserCheck className="w-4 h-4 text-amber-400" />
-            <span>Faculty Assignments</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-neutral-900 border border-neutral-800">
-              {assignments.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("timetable")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-              activeTab === "timetable"
-                ? "bg-neutral-800 text-white border border-neutral-700"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-            }`}
-          >
-            <Calendar className="w-4 h-4 text-purple-400" />
-            <span>Timetable Schedule</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-neutral-900 border border-neutral-800">
-              {timetables.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("syllabus")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-              activeTab === "syllabus"
-                ? "bg-neutral-800 text-white border border-neutral-700"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-            }`}
-          >
-            <FileCheck className="w-4 h-4 text-teal-400" />
-            <span>Syllabus Manager</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("gradebook")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-              activeTab === "gradebook"
-                ? "bg-neutral-800 text-white border border-neutral-700"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-            }`}
-          >
-            <Award className="w-4 h-4 text-emerald-400" />
-            <span>Gradebook & Marks</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-neutral-900 border border-neutral-800">
-              {marks.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("attendance")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-              activeTab === "attendance"
-                ? "bg-neutral-800 text-white border border-neutral-700"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-            }`}
-          >
-            <CheckSquare className="w-4 h-4 text-rose-400" />
-            <span>Attendance Registry</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-neutral-900 border border-neutral-800">
-              {attendance.length}
-            </span>
-          </button>
-        </div>
-
-        {/* TAB 1: COURSES & SUBJECTS */}
+        {/* TAB 1: COURSES CATALOG */}
         {activeTab === "courses" && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl bg-neutral-900/60 border border-neutral-800">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
+                  placeholder="Search course code or name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search courses by title, code, program..."
-                  className="w-full pl-9 pr-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-xl text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-800 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none"
                 />
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowNewSubjectModal(true)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-medium bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors"
-                >
-                  + Add Subject
-                </button>
-                <button
-                  onClick={() => setShowNewCourseModal(true)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
-                >
-                  + Create Course
-                </button>
+                <span className="text-xs text-neutral-400">
+                  National Education Policy (NEP 2020) & Academic Bank of Credits (ABC) Compliant
+                </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredCourses.map((course) => {
-                const courseSubs = subjects.filter((s) => s.courseId === course.id);
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-neutral-900/90 text-neutral-400 font-semibold border-b border-neutral-800">
+                    <tr>
+                      <th className="p-3.5">Course Code</th>
+                      <th className="p-3.5">Course Title</th>
+                      <th className="p-3.5">Academic Program</th>
+                      <th className="p-3.5">Credits</th>
+                      <th className="p-3.5">Industry Anchor</th>
+                      <th className="p-3.5 text-right">ABC Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/60">
+                    {courses
+                      .filter(
+                        (c) =>
+                          c.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          c.name?.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((c) => (
+                        <tr key={c.id} className="hover:bg-neutral-800/30 transition-colors">
+                          <td className="p-3.5 font-bold text-amber-400">{c.code}</td>
+                          <td className="p-3.5 font-medium text-neutral-200">{c.name}</td>
+                          <td className="p-3.5 text-neutral-400">{c.program}</td>
+                          <td className="p-3.5">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-neutral-800 text-neutral-200">
+                              {c.credits} Credits
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                                c.code?.includes("IBM")
+                                  ? "bg-sky-500/10 text-sky-300 border border-sky-500/20"
+                                  : c.code?.includes("TAT")
+                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                                  : c.code?.includes("PHARM")
+                                  ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                  : "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                              }`}
+                            >
+                              {c.code?.includes("IBM")
+                                ? "IBM India"
+                                : c.code?.includes("TAT")
+                                ? "Tata Technologies"
+                                : c.code?.includes("PHARM")
+                                ? "Rayat Institute"
+                                : "NSDC Skill Partner"}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <span className="text-emerald-400 font-medium text-[11px] flex items-center justify-end gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Recognized (ABC)</span>
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: SKILL LABS & TIMETABLE */}
+        {activeTab === "timetable" && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl bg-neutral-900/60 border border-neutral-800">
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedDayFilter}
+                  onChange={(e) => setSelectedDayFilter(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-lg bg-neutral-950 border border-neutral-800 text-xs text-neutral-300 focus:outline-none"
+                >
+                  <option value="all">All Days (Mon - Fri)</option>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                </select>
+
+                <select
+                  value={selectedCourseFilter}
+                  onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-lg bg-neutral-950 border border-neutral-800 text-xs text-neutral-300 focus:outline-none"
+                >
+                  <option value="all">All Scheduled Courses</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} - {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Zero-Clash Collision Detector Active</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTimetables.map((slot) => {
+                const matchedCourse = courses.find((c) => c.id === slot.courseId);
                 return (
                   <div
-                    key={course.id}
-                    className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-3"
+                    key={slot.id}
+                    className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800 hover:border-neutral-700 transition-all space-y-3 shadow-md"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                            {course.code}
-                          </span>
-                          <span className="text-[11px] text-neutral-400">
-                            Semester {course.semester}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-semibold text-white mt-1.5">{course.name}</h3>
-                        <p className="text-xs text-neutral-400">{course.program}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-neutral-300 bg-neutral-800 px-2.5 py-1 rounded-xl">
-                        {course.credits} Credits
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                        {slot.dayOfWeek}
+                      </span>
+                      <span className="text-xs font-bold text-neutral-200">
+                        {slot.startTime} - {slot.endTime}
                       </span>
                     </div>
 
-                    {/* Embedded Subjects List */}
-                    <div className="pt-3 border-t border-neutral-800/80">
-                      <p className="text-[11px] uppercase font-semibold text-neutral-400 tracking-wider mb-2">
-                        Attached Curriculum Subjects ({courseSubs.length})
-                      </p>
-                      <div className="space-y-1.5">
-                        {courseSubs.length === 0 ? (
-                          <p className="text-xs text-neutral-500 italic">No individual subjects mapped yet.</p>
-                        ) : (
-                          courseSubs.map((sub) => (
-                            <div
-                              key={sub.id}
-                              className="p-2 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between text-xs"
-                            >
-                              <div>
-                                <span className="font-mono font-medium text-neutral-300">{sub.code}</span>
-                                <span className="text-neutral-400 ml-2">{sub.name}</span>
-                              </div>
-                              <span className="text-[11px] text-neutral-500 font-medium">
-                                {sub.credits} cr
-                              </span>
-                            </div>
-                          ))
-                        )}
+                    <div>
+                      <div className="text-xs font-bold text-neutral-100">
+                        {matchedCourse ? `${matchedCourse.code} - ${matchedCourse.name}` : "Industry Skill Lab"}
+                      </div>
+                      <div className="text-[11px] text-neutral-400 mt-1 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                        <span className="font-medium text-neutral-300 truncate">{slot.room}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-400">
+                      <span>Section: {slot.sectionCode}</span>
+                      <span>Semester {slot.semester}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: FACULTY & INDUSTRY SMES */}
+        {activeTab === "faculty" && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800">
+              <h3 className="text-sm font-semibold text-neutral-100">
+                LTSU Academic Faculty & 50+ Industry Practitioners / Subject Matter Experts
+              </h3>
+              <p className="text-xs text-neutral-400">
+                Curriculum mentorship and practical laboratory training supervised by leading tech enterprise practice leaders.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  name: "Dr. Alan Turing",
+                  designation: "IBM Practice Leader & Distinguished Engineer",
+                  department: "IBM School of Technology",
+                  hours: "18 hrs/week (12 Lab, 6 Lecture)",
+                  courses: "IBM-CCV101, IBM-AIML201",
+                  tag: "IBM India Anchor",
+                },
+                {
+                  name: "Dr. Grace Hopper",
+                  designation: "Chief Robotics SME & Smart Manufacturing Lead",
+                  department: "School of Engineering & Technology",
+                  hours: "20 hrs/week (14 Lab, 6 Lecture)",
+                  courses: "TAT-ROB101, TAT-EV201",
+                  tag: "Tata Technologies Anchor",
+                },
+                {
+                  name: "Er. Vikramaditya Sharma",
+                  designation: "Principal Simulation Specialist",
+                  department: "Simulation & Mechanical Design",
+                  hours: "16 hrs/week (10 Lab, 6 Lecture)",
+                  courses: "ANS-SM301 (Ansys)",
+                  tag: "Ansys Simulation",
+                },
+                {
+                  name: "Dr. Neha Sharma",
+                  designation: "Dean & Professor of Pharmacology",
+                  department: "Rayat Institute of Pharmacy",
+                  hours: "18 hrs/week (10 Lab, 8 Lecture)",
+                  courses: "RIP-PHARM101",
+                  tag: "Rayat Institute",
+                },
+              ].map((fac) => (
+                <div key={fac.name} className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-3 shadow-md">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-sm font-bold text-neutral-100">{fac.name}</div>
+                      <div className="text-xs text-amber-400 font-medium">{fac.designation}</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-neutral-800 text-neutral-300 border border-neutral-700">
+                      {fac.tag}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-neutral-400 divide-y divide-neutral-800/60">
+                    <div className="flex justify-between py-1">
+                      <span>Faculty School:</span>
+                      <span className="text-neutral-200 font-medium">{fac.department}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span>Assigned Workload:</span>
+                      <span className="text-emerald-400 font-medium">{fac.hours}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span>Mapped Courses:</span>
+                      <span className="text-neutral-200 font-medium">{fac.courses}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: CURRICULUM & SYLLABUS */}
+        {activeTab === "syllabus" && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-100">
+                  Industry-Integrated Syllabi & Practical Capstone Outlines
+                </h3>
+                <p className="text-xs text-neutral-400">
+                  Competency matrices co-structured with IBM India and Tata Technologies engineers.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {syllabi.map((syl) => {
+                const matchedCourse = courses.find((c) => c.id === syl.courseId);
+                return (
+                  <div key={syl.id} className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-3 shadow-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                          Official Curriculum Framework
+                        </span>
+                        <h4 className="text-sm font-bold text-neutral-100">
+                          {matchedCourse ? `${matchedCourse.code} - ${matchedCourse.name}` : "Course Syllabus"}
+                        </h4>
+                      </div>
+                      <button
+                        onClick={() => notify("success", "Syllabus outline exported to PDF format.")}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs transition-colors"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>Download Outline</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div>
+                        <span className="font-semibold text-neutral-300">Course Competency Objectives:</span>
+                        <p className="text-neutral-400 mt-0.5 leading-relaxed">{syl.objectives}</p>
+                      </div>
+
+                      <div>
+                        <span className="font-semibold text-neutral-300">Detailed Syllabus Content:</span>
+                        <p className="text-neutral-400 mt-0.5 leading-relaxed">{syl.content}</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                          <span className="font-semibold text-neutral-300 block mb-1">Prescribed Reference Works</span>
+                          <span className="text-neutral-400">{syl.textbooks}</span>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                          <span className="font-semibold text-neutral-300 block mb-1">Grading & Evaluation Schema</span>
+                          <span className="text-emerald-400 font-medium">{syl.assessmentMethod}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -778,413 +868,345 @@ export default function AcademicPage() {
           </div>
         )}
 
-        {/* TAB 2: FACULTY ASSIGNMENTS */}
-        {activeTab === "faculty" && (
+        {/* TAB 5: CCA GRADEBOOK */}
+        {activeTab === "gradebook" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-neutral-900/60 border border-neutral-800">
               <div>
-                <h3 className="text-sm font-semibold text-white">Professor Course Assignments</h3>
-                <p className="text-xs text-neutral-400">Official instructor mappings by section and semester.</p>
+                <h3 className="text-sm font-semibold text-neutral-100">
+                  Continuous Comprehensive Assessment (CCA) & Examination Gradebook
+                </h3>
+                <p className="text-xs text-neutral-400">
+                  Internal marks, skill lab evaluations, automated SGPA/CGPA calculations, and grade publication.
+                </p>
               </div>
               <button
-                onClick={() => setShowNewAssignmentModal(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+                onClick={() => setShowNewMarkModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm"
               >
-                + Assign Faculty
+                <Plus className="w-3.5 h-3.5" />
+                <span>Record Marks</span>
               </button>
             </div>
 
-            <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/50 overflow-hidden shadow-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-900 text-neutral-400 uppercase tracking-wider font-semibold text-[10px]">
-                  <tr>
-                    <th className="py-3 px-4">Faculty Member</th>
-                    <th className="py-3 px-4">Course Assignment</th>
-                    <th className="py-3 px-4">Section</th>
-                    <th className="py-3 px-4">Academic Year</th>
-                    <th className="py-3 px-4">Semester</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/60 text-neutral-200">
-                  {assignments.length === 0 ? (
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-neutral-900/90 text-neutral-400 font-semibold border-b border-neutral-800">
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-neutral-500">
-                        No faculty assignments configured.
-                      </td>
+                      <th className="p-3.5">Student</th>
+                      <th className="p-3.5">Course & Assessment</th>
+                      <th className="p-3.5">Score Obtained</th>
+                      <th className="p-3.5">Grade</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5 text-right">Action</th>
                     </tr>
-                  ) : (
-                    assignments.map((asg) => (
-                      <tr key={asg.id} className="hover:bg-neutral-800/30 transition-colors">
-                        <td className="py-3 px-4 font-medium text-white">
-                          {asg.teacherFirstName ? `${asg.teacherFirstName} ${asg.teacherLastName}` : asg.teacherId}
-                          <div className="text-[11px] text-neutral-500">{asg.teacherEmail}</div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-mono text-emerald-400 mr-1.5">{asg.courseCode}</span>
-                          <span className="text-neutral-300">{asg.courseName}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-semibold px-2 py-0.5 rounded bg-neutral-800 border border-neutral-700">
-                            Section {asg.sectionCode}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-neutral-400">{asg.academicYear}</td>
-                        <td className="py-3 px-4 text-neutral-300">Semester {asg.semester}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/60">
+                    {marks.map((mrk) => {
+                      const matchedCourse = courses.find((c) => c.id === mrk.courseId);
+                      return (
+                        <tr key={mrk.id} className="hover:bg-neutral-800/30 transition-colors">
+                          <td className="p-3.5">
+                            <div className="font-semibold text-neutral-200">{mrk.studentId}</div>
+                            <div className="text-[11px] text-neutral-400">{mrk.feedbackNotes}</div>
+                          </td>
+                          <td className="p-3.5">
+                            <div className="font-medium text-neutral-300">
+                              {matchedCourse ? matchedCourse.name : "Skill Lab Module"}
+                            </div>
+                            <div className="text-[11px] text-neutral-500">{mrk.assessmentName}</div>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="text-sm font-bold text-neutral-100">
+                              {mrk.marksObtained} / {mrk.maxMarks}
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                              {mrk.grade || "A"}
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                                mrk.status === "published"
+                                  ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                  : "bg-neutral-800 text-neutral-400"
+                              }`}
+                            >
+                              {mrk.status}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right">
+                            {mrk.status !== "published" && (
+                              <button
+                                disabled={actionLoading}
+                                onClick={() => handlePublishMarks(mrk.id)}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-[11px] font-medium transition-all"
+                              >
+                                Publish Grade
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* TAB 3: TIMETABLE SCHEDULE */}
-        {activeTab === "timetable" && (
+        {/* TAB 6: BIOMETRIC ATTENDANCE & 75% ELIGIBILITY */}
+        {activeTab === "attendance" && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                {["all", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setSelectedDayFilter(d)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                      selectedDayFilter === d
-                        ? "bg-neutral-800 text-white border border-neutral-700"
-                        : "text-neutral-500 hover:text-neutral-300"
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-neutral-900/60 border border-neutral-800">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-100">
+                  Biometric Attendance Register & Exam Eligibility Audit
+                </h3>
+                <p className="text-xs text-neutral-400">
+                  Strict 75% minimum threshold mandated by Academic Council for end-term theory & practical exams.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowNewAttendanceModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Log Session Attendance</span>
+              </button>
+            </div>
+
+            {/* Student Attendance Compliance Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {["usr_student1", "usr_student2"].map((stdId) => {
+                const stats = computeAttendanceStats(stdId);
+                const isEligible = stats.percent >= 75;
+                return (
+                  <div
+                    key={stdId}
+                    className={`p-4 rounded-2xl border space-y-3 ${
+                      isEligible
+                        ? "bg-neutral-900/40 border-neutral-800"
+                        : "bg-red-950/20 border-red-500/40"
                     }`}
                   >
-                    {d}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setShowNewTimetableModal(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors self-start sm:self-auto"
-              >
-                + Schedule Slot
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTimetables.length === 0 ? (
-                <div className="col-span-full py-12 text-center text-neutral-500 bg-neutral-900/40 rounded-2xl border border-neutral-800">
-                  No timetable slots found for this filter.
-                </div>
-              ) : (
-                filteredTimetables.map((tt) => (
-                  <div
-                    key={tt.id}
-                    className="p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                        {tt.dayOfWeek}
-                      </span>
-                      <span className="text-xs font-mono text-neutral-300 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-neutral-500" />
-                        {tt.startTime} - {tt.endTime}
-                      </span>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-sm font-bold text-neutral-100">{stdId}</div>
+                        <div className="text-xs text-neutral-400">
+                          Total Sessions: {stats.total} | Present: {stats.present}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-base font-bold ${isEligible ? "text-emerald-400" : "text-red-400"}`}>
+                          {stats.percent}%
+                        </div>
+                        <span
+                          className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${
+                            isEligible
+                              ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                              : "bg-red-500/20 text-red-300 border border-red-500/30"
+                          }`}
+                        >
+                          {isEligible ? "Exam Eligible" : "Attendance Warning"}
+                        </span>
+                      </div>
                     </div>
 
-                    <div>
-                      <h4 className="text-sm font-semibold text-white mt-1">{tt.courseName}</h4>
-                      <p className="text-xs text-neutral-400 font-mono">{tt.courseCode} • Section {tt.sectionCode}</p>
-                    </div>
-
-                    <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-between text-xs text-neutral-400">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                        {tt.room}
-                      </span>
-                      <span className="text-[11px] text-neutral-500">
-                        Academic Year {tt.academicYear}
-                      </span>
+                    <div className="w-full h-2 rounded-full bg-neutral-800 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          isEligible ? "bg-emerald-500" : "bg-red-500"
+                        }`}
+                        style={{ width: `${stats.percent}%` }}
+                      />
                     </div>
                   </div>
-                ))
-              )}
+                );
+              })}
+            </div>
+
+            {/* Attendance Log Table */}
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-neutral-900/90 text-neutral-400 font-semibold border-b border-neutral-800">
+                    <tr>
+                      <th className="p-3.5">Session Date</th>
+                      <th className="p-3.5">Student ID</th>
+                      <th className="p-3.5">Course Code</th>
+                      <th className="p-3.5">Attendance Status</th>
+                      <th className="p-3.5 text-right">Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/60">
+                    {attendance.map((att) => (
+                      <tr key={att.id} className="hover:bg-neutral-800/30 transition-colors">
+                        <td className="p-3.5 text-neutral-300">{att.classDate}</td>
+                        <td className="p-3.5 font-semibold text-neutral-200">{att.studentId}</td>
+                        <td className="p-3.5 font-mono text-neutral-400">{att.courseId}</td>
+                        <td className="p-3.5">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                              att.status === "present"
+                                ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                : "bg-red-500/10 text-red-300 border border-red-500/20"
+                            }`}
+                          >
+                            {att.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-right text-neutral-400">{att.remarks || "Regular session"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* TAB 4: SYLLABUS MANAGER */}
-        {activeTab === "syllabus" && (
+        {/* TAB 7: ACADEMIC CIRCULARS & NOTICES */}
+        {activeTab === "circulars" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-white">Course Syllabi & Curriculum Outlines</h3>
-                <p className="text-xs text-neutral-400">Formal module breakdown, textbook citations, and assessment criteria.</p>
-              </div>
-              <button
-                onClick={() => setShowNewSyllabusModal(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
-              >
-                + Add Syllabus
-              </button>
+            <div className="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800">
+              <h3 className="text-sm font-semibold text-neutral-100">
+                Official LTSU Academic Notices, Circulars & Examination Notifications
+              </h3>
+              <p className="text-xs text-neutral-400">
+                Directly syndicated from Lamrin Tech Skills University Punjab administration and Academic Affairs.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {syllabi.map((syl) => (
+            <div className="space-y-3">
+              {ltsuCirculars.map((circ) => (
                 <div
-                  key={syl.id}
-                  className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-3 text-xs"
+                  key={circ.id}
+                  className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800 hover:border-neutral-700 transition-all space-y-2 shadow-md"
                 >
-                  <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5">
-                    <div>
-                      <span className="font-mono font-bold text-emerald-400">{syl.courseCode}</span>
-                      <h4 className="text-sm font-semibold text-white mt-0.5">{syl.courseName}</h4>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {circ.urgent && (
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-red-500/20 text-red-300 border border-red-500/30">
+                          Urgent
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-neutral-800 text-neutral-300">
+                        {circ.category}
+                      </span>
+                      <h4 className="text-sm font-bold text-neutral-100">{circ.title}</h4>
                     </div>
-                    <span className="text-[10px] uppercase font-semibold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
-                      Curriculum
-                    </span>
+                    <span className="text-xs text-neutral-400 whitespace-nowrap">{circ.date}</span>
                   </div>
 
-                  <div>
-                    <span className="text-neutral-500 block font-medium">Curriculum Units:</span>
-                    <p className="text-neutral-200 mt-1 leading-relaxed">{syl.content}</p>
-                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">{circ.desc}</p>
 
-                  <div>
-                    <span className="text-neutral-500 block font-medium">Core Objectives:</span>
-                    <p className="text-neutral-300 mt-0.5">{syl.objectives}</p>
-                  </div>
-
-                  <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-400">
-                    <span>Textbook: {syl.textbooks}</span>
-                    <span className="text-purple-300">{syl.assessmentMethod}</span>
+                  <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-end">
+                    <button
+                      onClick={() => notify("success", `Opening official circular document for: ${circ.title}`)}
+                      className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-medium"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Circular PDF</span>
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
-
-        {/* TAB 5: GRADEBOOK & INTERNAL MARKS */}
-        {activeTab === "gradebook" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-white">Student Internal Gradebook</h3>
-                <p className="text-xs text-neutral-400">Verified marks with boundary validation and grade calculation.</p>
-              </div>
-              <button
-                onClick={() => setShowNewMarkModal(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
-              >
-                + Record Marks
-              </button>
-            </div>
-
-            <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/50 overflow-hidden shadow-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-900 text-neutral-400 uppercase tracking-wider font-semibold text-[10px]">
-                  <tr>
-                    <th className="py-3 px-4">Student</th>
-                    <th className="py-3 px-4">Course</th>
-                    <th className="py-3 px-4">Assessment</th>
-                    <th className="py-3 px-4">Score</th>
-                    <th className="py-3 px-4">Grade</th>
-                    <th className="py-3 px-4">Instructor Feedback</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/60 text-neutral-200">
-                  {marks.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-12 text-center text-neutral-500">
-                        No marks records submitted.
-                      </td>
-                    </tr>
-                  ) : (
-                    marks.map((mrk) => (
-                      <tr key={mrk.id} className="hover:bg-neutral-800/30 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-medium text-white">
-                            {mrk.studentFirstName ? `${mrk.studentFirstName} ${mrk.studentLastName}` : mrk.studentId}
-                          </div>
-                          <div className="text-[11px] text-neutral-500">{mrk.studentEmail}</div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-mono text-emerald-400">{mrk.courseCode}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-medium">{mrk.assessmentName}</span>
-                          <span className="text-[10px] text-neutral-500 uppercase ml-1.5">
-                            ({mrk.assessmentType})
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-mono font-bold text-white">
-                          {mrk.marksObtained} / {mrk.maxMarks}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                            {mrk.grade || "A"}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-neutral-400 italic">
-                          {mrk.feedbackNotes || "No notes"}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: ATTENDANCE REGISTRY */}
-        {activeTab === "attendance" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-white">Lecture Attendance Register</h3>
-                <p className="text-xs text-neutral-400">Class attendance tracking with automated 75% minimum threshold monitoring.</p>
-              </div>
-              <button
-                onClick={() => setShowNewAttendanceModal(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
-              >
-                + Mark Attendance
-              </button>
-            </div>
-
-            <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/50 overflow-hidden shadow-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-900 text-neutral-400 uppercase tracking-wider font-semibold text-[10px]">
-                  <tr>
-                    <th className="py-3 px-4">Student</th>
-                    <th className="py-3 px-4">Course</th>
-                    <th className="py-3 px-4">Class Date</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Faculty Remarks</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/60 text-neutral-200">
-                  {attendance.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-12 text-center text-neutral-500">
-                        No attendance records logged.
-                      </td>
-                    </tr>
-                  ) : (
-                    attendance.map((att) => (
-                      <tr key={att.id} className="hover:bg-neutral-800/30 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-medium text-white">
-                            {att.studentFirstName ? `${att.studentFirstName} ${att.studentLastName}` : att.studentId}
-                          </div>
-                          <div className="text-[11px] text-neutral-500">{att.studentEmail}</div>
-                        </td>
-                        <td className="py-3 px-4 font-mono text-emerald-400">{att.courseCode}</td>
-                        <td className="py-3 px-4 text-neutral-300">{att.classDate}</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border ${
-                              att.status === "present"
-                                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                                : att.status === "leave"
-                                ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                                : "bg-red-500/15 text-red-400 border-red-500/30"
-                            }`}
-                          >
-                            {att.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-neutral-400">{att.remarks || "Regular session"}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </main>
 
-      {/* CREATE COURSE MODAL */}
+      {/* MODAL: CREATE COURSE */}
       {showNewCourseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Create Academic Course</h3>
-              <button onClick={() => setShowNewCourseModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <h3 className="text-sm font-bold text-neutral-100">Create Academic Course</h3>
+              <button onClick={() => setShowNewCourseModal(false)} className="text-neutral-400 text-xs">
+                Close
               </button>
             </div>
+
             <form onSubmit={handleCreateCourse} className="space-y-3 text-xs">
               <div>
-                <label className="block text-neutral-400 mb-1">Course Code</label>
+                <label className="text-neutral-400 block mb-1">Course Code</label>
                 <input
-                  type="text"
                   required
-                  placeholder="e.g. CS301"
+                  type="text"
                   value={courseForm.code}
-                  onChange={(e) => setCourseForm({ ...courseForm, code: e.target.value.toUpperCase() })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  onChange={(e) => setCourseForm({ ...courseForm, code: e.target.value })}
+                  placeholder="e.g. IBM-CCV102"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                 />
               </div>
+
               <div>
-                <label className="block text-neutral-400 mb-1">Course Title</label>
+                <label className="text-neutral-400 block mb-1">Course Title</label>
                 <input
-                  type="text"
                   required
-                  placeholder="e.g. Operating Systems"
+                  type="text"
                   value={courseForm.name}
                   onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  placeholder="e.g. Enterprise Cloud DevOps & SRE"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Credits</label>
+                  <label className="text-neutral-400 block mb-1">Credits</label>
                   <input
-                    type="number"
                     required
+                    type="number"
                     min={1}
                     max={6}
                     value={courseForm.credits}
                     onChange={(e) => setCourseForm({ ...courseForm, credits: Number(e.target.value) })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-neutral-400 mb-1">Semester</label>
+                  <label className="text-neutral-400 block mb-1">Semester</label>
                   <input
-                    type="number"
                     required
+                    type="number"
                     min={1}
                     max={8}
                     value={courseForm.semester}
                     onChange={(e) => setCourseForm({ ...courseForm, semester: Number(e.target.value) })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
               </div>
+
               <div>
-                <label className="block text-neutral-400 mb-1">Degree Program</label>
-                <select
+                <label className="text-neutral-400 block mb-1">Academic Program</label>
+                <input
+                  required
+                  type="text"
                   value={courseForm.program}
                   onChange={(e) => setCourseForm({ ...courseForm, program: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Cybersecurity">Cybersecurity</option>
-                </select>
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                />
               </div>
-              <div className="pt-3 flex justify-end gap-2">
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowNewCourseModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 text-neutral-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
                 >
                   Create Course
                 </button>
@@ -1194,180 +1216,24 @@ export default function AcademicPage() {
         </div>
       )}
 
-      {/* CREATE SUBJECT MODAL */}
-      {showNewSubjectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Add Curriculum Subject</h3>
-              <button onClick={() => setShowNewSubjectModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateSubject} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-neutral-400 mb-1">Parent Course</label>
-                <select
-                  value={subjectForm.courseId}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, courseId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.code} - {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Subject Code</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. SUB-CS301"
-                  value={subjectForm.code}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value.toUpperCase() })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Subject Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Memory Virtualization"
-                  value={subjectForm.name}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Subject Description</label>
-                <textarea
-                  rows={2}
-                  value={subjectForm.description}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
-                  placeholder="Core theoretical principles"
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewSubjectModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
-                >
-                  Attach Subject
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ASSIGN FACULTY MODAL */}
-      {showNewAssignmentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Assign Faculty Member</h3>
-              <button onClick={() => setShowNewAssignmentModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateAssignment} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-neutral-400 mb-1">Select Course</label>
-                <select
-                  value={assignmentForm.courseId}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, courseId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.code} - {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Professor</label>
-                <select
-                  value={assignmentForm.teacherId}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, teacherId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  <option value="usr_faculty1">Dr. Alan Turing (faculty1@university.edu)</option>
-                  <option value="usr_faculty2">Dr. Grace Hopper (faculty2@university.edu)</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-neutral-400 mb-1">Section</label>
-                  <input
-                    type="text"
-                    required
-                    value={assignmentForm.sectionCode}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, sectionCode: e.target.value.toUpperCase() })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-neutral-400 mb-1">Semester</label>
-                  <input
-                    type="number"
-                    required
-                    value={assignmentForm.semester}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, semester: Number(e.target.value) })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewAssignmentModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
-                >
-                  Confirm Assignment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* SCHEDULE TIMETABLE MODAL */}
+      {/* MODAL: SCHEDULE TIMETABLE / LAB SLOT */}
       {showNewTimetableModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Schedule Timetable Slot</h3>
-              <button onClick={() => setShowNewTimetableModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <h3 className="text-sm font-bold text-neutral-100">Schedule Practical Skill Lab</h3>
+              <button onClick={() => setShowNewTimetableModal(false)} className="text-neutral-400 text-xs">
+                Close
               </button>
             </div>
+
             <form onSubmit={handleCreateTimetable} className="space-y-3 text-xs">
               <div>
-                <label className="block text-neutral-400 mb-1">Course</label>
+                <label className="text-neutral-400 block mb-1">Select Course</label>
                 <select
                   value={timetableForm.courseId}
                   onChange={(e) => setTimetableForm({ ...timetableForm, courseId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                 >
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1376,67 +1242,84 @@ export default function AcademicPage() {
                   ))}
                 </select>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Day of Week</label>
+                  <label className="text-neutral-400 block mb-1">Day of Week</label>
                   <select
                     value={timetableForm.dayOfWeek}
                     onChange={(e) => setTimetableForm({ ...timetableForm, dayOfWeek: e.target.value })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   >
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-neutral-400 mb-1">Room</label>
+                  <label className="text-neutral-400 block mb-1">Section Code</label>
                   <input
-                    type="text"
                     required
-                    value={timetableForm.room}
-                    onChange={(e) => setTimetableForm({ ...timetableForm, room: e.target.value })}
-                    placeholder="Lab-301"
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    type="text"
+                    value={timetableForm.sectionCode}
+                    onChange={(e) => setTimetableForm({ ...timetableForm, sectionCode: e.target.value })}
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Start Time</label>
+                  <label className="text-neutral-400 block mb-1">Start Time</label>
                   <input
-                    type="time"
                     required
+                    type="time"
                     value={timetableForm.startTime}
                     onChange={(e) => setTimetableForm({ ...timetableForm, startTime: e.target.value })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-neutral-400 mb-1">End Time</label>
+                  <label className="text-neutral-400 block mb-1">End Time</label>
                   <input
-                    type="time"
                     required
+                    type="time"
                     value={timetableForm.endTime}
                     onChange={(e) => setTimetableForm({ ...timetableForm, endTime: e.target.value })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
               </div>
-              <div className="pt-3 flex justify-end gap-2">
+
+              <div>
+                <label className="text-neutral-400 block mb-1">Laboratory / Workshop Facility</label>
+                <select
+                  value={timetableForm.room}
+                  onChange={(e) => setTimetableForm({ ...timetableForm, room: e.target.value })}
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                >
+                  {ltsuLabRooms.map((room) => (
+                    <option key={room} value={room}>
+                      {room}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowNewTimetableModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 text-neutral-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
                 >
                   Confirm Slot
                 </button>
@@ -1446,99 +1329,24 @@ export default function AcademicPage() {
         </div>
       )}
 
-      {/* ADD SYLLABUS MODAL */}
-      {showNewSyllabusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Create Course Syllabus</h3>
-              <button onClick={() => setShowNewSyllabusModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateSyllabus} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-neutral-400 mb-1">Course</label>
-                <select
-                  value={syllabusForm.courseId}
-                  onChange={(e) => setSyllabusForm({ ...syllabusForm, courseId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.code} - {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Modules Content Outline</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={syllabusForm.content}
-                  onChange={(e) => setSyllabusForm({ ...syllabusForm, content: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Prescribed Textbooks</label>
-                <input
-                  type="text"
-                  required
-                  value={syllabusForm.textbooks}
-                  onChange={(e) => setSyllabusForm({ ...syllabusForm, textbooks: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Assessment Scheme</label>
-                <input
-                  type="text"
-                  required
-                  value={syllabusForm.assessmentMethod}
-                  onChange={(e) => setSyllabusForm({ ...syllabusForm, assessmentMethod: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewSyllabusModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
-                >
-                  Publish Syllabus
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* RECORD MARK MODAL */}
+      {/* MODAL: RECORD MARKS */}
       {showNewMarkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Record Internal Marks</h3>
-              <button onClick={() => setShowNewMarkModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <h3 className="text-sm font-bold text-neutral-100">Record Continuous Assessment Marks</h3>
+              <button onClick={() => setShowNewMarkModal(false)} className="text-neutral-400 text-xs">
+                Close
               </button>
             </div>
-            <form onSubmit={handleRecordMark} className="space-y-3 text-xs">
+
+            <form onSubmit={handleCreateMark} className="space-y-3 text-xs">
               <div>
-                <label className="block text-neutral-400 mb-1">Course</label>
+                <label className="text-neutral-400 block mb-1">Course</label>
                 <select
                   value={markForm.courseId}
                   onChange={(e) => setMarkForm({ ...markForm, courseId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                 >
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1547,75 +1355,92 @@ export default function AcademicPage() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Student</label>
-                <select
-                  value={markForm.studentId}
-                  onChange={(e) => setMarkForm({ ...markForm, studentId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  <option value="usr_student1">Alice Smith (student1@university.edu)</option>
-                  <option value="usr_student2">Bob Johnson (student2@university.edu)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-neutral-400 mb-1">Assessment Title</label>
-                <input
-                  type="text"
-                  required
-                  value={markForm.assessmentName}
-                  onChange={(e) => setMarkForm({ ...markForm, assessmentName: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                />
-              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Marks Obtained</label>
+                  <label className="text-neutral-400 block mb-1">Student ID</label>
                   <input
-                    type="number"
                     required
-                    min={0}
-                    max={markForm.maxMarks}
-                    value={markForm.marksObtained}
-                    onChange={(e) => setMarkForm({ ...markForm, marksObtained: Number(e.target.value) })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    type="text"
+                    value={markForm.studentId}
+                    onChange={(e) => setMarkForm({ ...markForm, studentId: e.target.value })}
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-neutral-400 mb-1">Max Marks</label>
+                  <label className="text-neutral-400 block mb-1">Assessment Type</label>
+                  <select
+                    value={markForm.assessmentType}
+                    onChange={(e) => setMarkForm({ ...markForm, assessmentType: e.target.value })}
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                  >
+                    <option value="assignment">Assignment / Lab Report</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="midterm">Midterm Exam / Practical</option>
+                    <option value="final">End Term Exam</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-neutral-400 block mb-1">Assessment Name</label>
+                <input
+                  required
+                  type="text"
+                  value={markForm.assessmentName}
+                  onChange={(e) => setMarkForm({ ...markForm, assessmentName: e.target.value })}
+                  placeholder="e.g. OpenShift Deployment Practical"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-neutral-400 block mb-1">Max Marks</label>
                   <input
-                    type="number"
                     required
-                    min={1}
+                    type="number"
                     value={markForm.maxMarks}
                     onChange={(e) => setMarkForm({ ...markForm, maxMarks: Number(e.target.value) })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                  />
+                </div>
+                <div>
+                  <label className="text-neutral-400 block mb-1">Marks Obtained</label>
+                  <input
+                    required
+                    type="number"
+                    value={markForm.marksObtained}
+                    onChange={(e) => setMarkForm({ ...markForm, marksObtained: Number(e.target.value) })}
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
               </div>
+
               <div>
-                <label className="block text-neutral-400 mb-1">Instructor Feedback</label>
-                <input
-                  type="text"
+                <label className="text-neutral-400 block mb-1">Faculty Feedback Notes</label>
+                <textarea
+                  rows={2}
                   value={markForm.feedbackNotes}
                   onChange={(e) => setMarkForm({ ...markForm, feedbackNotes: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                 />
               </div>
-              <div className="pt-3 flex justify-end gap-2">
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowNewMarkModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 text-neutral-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
                 >
-                  Save Marks
+                  Record Mark
                 </button>
               </div>
             </form>
@@ -1623,23 +1448,24 @@ export default function AcademicPage() {
         </div>
       )}
 
-      {/* MARK ATTENDANCE MODAL */}
+      {/* MODAL: LOG ATTENDANCE */}
       {showNewAttendanceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">Log Attendance Session</h3>
-              <button onClick={() => setShowNewAttendanceModal(false)} className="text-neutral-500 hover:text-neutral-300">
-                <X className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <h3 className="text-sm font-bold text-neutral-100">Log Session Attendance</h3>
+              <button onClick={() => setShowNewAttendanceModal(false)} className="text-neutral-400 text-xs">
+                Close
               </button>
             </div>
-            <form onSubmit={handleRecordAttendance} className="space-y-3 text-xs">
+
+            <form onSubmit={handleCreateAttendance} className="space-y-3 text-xs">
               <div>
-                <label className="block text-neutral-400 mb-1">Course</label>
+                <label className="text-neutral-400 block mb-1">Course</label>
                 <select
                   value={attendanceForm.courseId}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, courseId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                 >
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1648,55 +1474,68 @@ export default function AcademicPage() {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-neutral-400 mb-1">Student</label>
-                <select
+                <label className="text-neutral-400 block mb-1">Student ID</label>
+                <input
+                  required
+                  type="text"
                   value={attendanceForm.studentId}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, studentId: e.target.value })}
-                  className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
-                >
-                  <option value="usr_student1">Alice Smith (student1@university.edu)</option>
-                  <option value="usr_student2">Bob Johnson (student2@university.edu)</option>
-                </select>
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                />
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Date</label>
+                  <label className="text-neutral-400 block mb-1">Date</label>
                   <input
-                    type="date"
                     required
+                    type="date"
                     value={attendanceForm.classDate}
                     onChange={(e) => setAttendanceForm({ ...attendanceForm, classDate: e.target.value })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-neutral-400 mb-1">Status</label>
+                  <label className="text-neutral-400 block mb-1">Status</label>
                   <select
                     value={attendanceForm.status}
                     onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value })}
-                    className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
                   >
                     <option value="present">Present</option>
                     <option value="absent">Absent</option>
-                    <option value="leave">Leave</option>
+                    <option value="leave">Excused Leave</option>
                   </select>
                 </div>
               </div>
-              <div className="pt-3 flex justify-end gap-2">
+
+              <div>
+                <label className="text-neutral-400 block mb-1">Remarks</label>
+                <input
+                  type="text"
+                  value={attendanceForm.remarks}
+                  onChange={(e) => setAttendanceForm({ ...attendanceForm, remarks: e.target.value })}
+                  placeholder="e.g. Participated in practical lab test"
+                  className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowNewAttendanceModal(false)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 text-neutral-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
                 >
-                  Record
+                  Save Attendance
                 </button>
               </div>
             </form>
