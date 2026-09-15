@@ -130,11 +130,20 @@ export default function AdmissionsPage() {
       const res = await fetch(`/api/admissions/applications/${id}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ decisionNotes: "Approved by Admissions Board via ERP Portal" }),
+        body: JSON.stringify({
+          applicationId: id,
+          approvalNotes: "Approved by Admissions Board via ERP Portal",
+          decisionNotes: "Approved by Admissions Board via ERP Portal",
+        }),
         credentials: "include",
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Approval failed");
+      
+      // Optimistic update
+      setApplications((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: "approved" } : a))
+      );
       notify("success", "Application approved successfully.");
       setSelectedApplicant(null);
       fetchData();
@@ -147,16 +156,25 @@ export default function AdmissionsPage() {
 
   const handleReject = async () => {
     if (!showRejectModal) return;
+    const targetId = showRejectModal.id;
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/admissions/applications/${showRejectModal.id}/reject`, {
+      const res = await fetch(`/api/admissions/applications/${targetId}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rejectionReason: rejectionReason || "Does not satisfy program minimum thresholds" }),
+        body: JSON.stringify({
+          applicationId: targetId,
+          rejectionReason: rejectionReason || "Does not satisfy program minimum thresholds",
+        }),
         credentials: "include",
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Rejection failed");
+      
+      // Optimistic update
+      setApplications((prev) =>
+        prev.map((a) => (a.id === targetId ? { ...a, status: "rejected" } : a))
+      );
       notify("success", "Application rejected with formal record.");
       setShowRejectModal(null);
       setRejectionReason("");
@@ -177,13 +195,15 @@ export default function AdmissionsPage() {
         program: appItem.programAppliedFor,
         batch: "2026-2030",
         rollNumber: `ROL${Date.now().toString().slice(-6)}`,
+        email: appItem.email,
         studentEmail: appItem.email,
+        password: "StudentPass123!",
         studentPassword: "StudentPass123!",
         firstName: appItem.fullName.split(" ")[0] || "Student",
-        lastName: appItem.fullName.split(" ")[1] || "Candidate",
+        lastName: appItem.fullName.split(" ").slice(1).join(" ") || "Candidate",
       };
 
-      const res = await fetch("/api/admissions/enroll", {
+      const res = await fetch(`/api/admissions/applications/${appItem.id}/enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -191,6 +211,11 @@ export default function AdmissionsPage() {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Enrollment failed");
+      
+      // Optimistic update
+      setApplications((prev) =>
+        prev.map((a) => (a.id === appItem.id ? { ...a, status: "enrolled" } : a))
+      );
       notify("success", `Candidate officially enrolled with Roll Number ${d.data?.rollNumber || payload.rollNumber}.`);
       setSelectedApplicant(null);
       fetchData();
@@ -251,12 +276,12 @@ export default function AdmissionsPage() {
       const res = await fetch("/api/admissions/merit/calculate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ program: selectedProgram }),
+        body: JSON.stringify({ program: selectedProgram, academicYear: "2026-2027" }),
         credentials: "include",
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Merit calculation failed");
-      notify("success", `Merit ranking executed. ${d.data?.rankedCount || 0} candidates scored.`);
+      notify("success", `Merit ranking executed. ${d.data?.rankedCount || d.data?.count || 0} candidates scored.`);
       fetchData();
     } catch (err: any) {
       notify("error", err.message || "Ranking execution failed");
