@@ -24,9 +24,9 @@ echo "✅ bun is available"
 echo ""
 
 # Run database sync
-echo "📦 Syncing database schema..."
+echo "📦 Syncing database schema with Turso..."
 bun run db:sync || {
-    echo "⚠️  Database sync had issues (this is expected if Turso is not available)"
+    echo "⚠️  Database sync had issues (using local fallback if configured)"
     echo "   Continuing with dev server..."
 }
 
@@ -35,8 +35,15 @@ echo "🎯 Starting development server..."
 echo "   Navigate to: http://localhost:3000"
 echo ""
 echo "📍 Available routes:"
-echo "   - http://localhost:3000/admissions"
-echo "   - http://localhost:3000/academic"
+echo "   - Main Dashboard:       http://localhost:3000"
+echo "   - Admissions Portal:    http://localhost:3000/admissions"
+echo "   - Academic Portal:      http://localhost:3000/academic"
+echo "   - Authentication Login: http://localhost:3000/auth/login"
+echo ""
+echo "🔑 Test Credentials:"
+echo "   - Admin:   admin@university.edu    / AdminPass123!"
+echo "   - Faculty: faculty1@university.edu / FacultyPass123!"
+echo "   - Student: student1@university.edu / StudentPass123!"
 echo ""
 
 # Start the dev server

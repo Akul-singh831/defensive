@@ -20,22 +20,23 @@ interface UseAuthResult {
  *   - POST /api/auth/login (authenticate)
  *   - POST /api/auth/logout (sign out)
  */
-export function useAuth(requiredRoles?: string[]): UseAuthResult {
+export function useAuth(requiredRoles?: string[]): UseAuthResult & { logout: () => Promise<void> } {
   const [user, setUser] = useState<JwtPayload | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // For now, skip auth check since team/auth hasn't implemented endpoints yet
-    // When team/auth adds /api/auth/me, uncomment this:
-    /*
+    let isMounted = true;
+
     const checkAuth = async () => {
       try {
         const response = await fetch("/api/auth/me", {
           method: "GET",
           credentials: "include",
         });
+
+        if (!isMounted) return;
 
         if (!response.ok) {
           setUser(null);
@@ -44,11 +45,11 @@ export function useAuth(requiredRoles?: string[]): UseAuthResult {
           return;
         }
 
-        const data = (await response.json()) as { user: JwtPayload };
+        const data = (await response.json()) as { ok: boolean; user: JwtPayload };
         const fetchedUser = data.user;
 
-        if (requiredRoles && !requiredRoles.includes(fetchedUser.role)) {
-          setError(`Unauthorized: required role one of ${requiredRoles.join(", ")}`);
+        if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(fetchedUser.role)) {
+          setError(`Unauthorized: required role one of [${requiredRoles.join(", ")}]`);
           setIsAuthenticated(false);
           setLoading(false);
           return;
@@ -59,6 +60,7 @@ export function useAuth(requiredRoles?: string[]): UseAuthResult {
         setError(null);
         setLoading(false);
       } catch (err) {
+        if (!isMounted) return;
         setError(err instanceof Error ? err.message : "Auth check failed");
         setIsAuthenticated(false);
         setLoading(false);
@@ -66,12 +68,25 @@ export function useAuth(requiredRoles?: string[]): UseAuthResult {
     };
 
     checkAuth();
-    */
 
-    // For testing: allow unauthenticated access to demo pages
-    setLoading(false);
-    setIsAuthenticated(false);
+    return () => {
+      isMounted = false;
+    };
   }, [requiredRoles]);
 
-  return { user, loading, error, isAuthenticated };
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUser(null);
+      setIsAuthenticated(false);
+      window.location.href = "/auth/login";
+    } catch {
+      window.location.href = "/auth/login";
+    }
+  };
+
+  return { user, loading, error, isAuthenticated, logout };
 }

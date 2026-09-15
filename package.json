@@ -10,7 +10,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:sync": "drizzle-kit generate && drizzle-kit migrate && drizzle-kit push"
+    "db:sync": "drizzle-kit push",
+    "db:seed": "bun run scripts/seed-turso.ts",
+    "turso:setup": "bun run scripts/setup-turso.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

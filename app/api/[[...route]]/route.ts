@@ -2,7 +2,15 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { setCookie, deleteCookie } from "hono/cookie";
 import { AuthError, requireRole, requireAuth } from "@/lib/auth/guard";
+import { signJwt } from "@/lib/auth/jwt";
+import { verifyPassword } from "@/lib/auth/password";
+import type { UserRole } from "@/lib/auth/roles";
+import { db } from "@/lib/turso";
+import * as schema from "@/lib/schema";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 // Admissions
 import {
@@ -56,6 +64,114 @@ app.get("/", (c) => c.text("Ethical Hacking Project - Defensive ERP API"));
 app.get("/hello", (c) => c.json({ message: "Defensive API operational" }));
 
 // ===== AUTH / IDENTITY =====
+const loginRequestSchema = z.object({
+  email: z.string().email("Valid email address required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+app.post("/auth/login", async (c) => {
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON format" }, 400);
+  }
+
+  const parsed = loginRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: "Validation failed", details: parsed.error.flatten() }, 400);
+  }
+
+  const { email, password } = parsed.data;
+
+  try {
+    const user = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, email.toLowerCase().trim()))
+      .get();
+
+    if (!user) {
+      return c.json({ error: "Invalid email or password" }, 401);
+    }
+
+    if (!user.isActive) {
+      return c.json({ error: "Account is disabled. Please contact an administrator." }, 403);
+    }
+
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+      return c.json(
+        {
+          error: "Account temporarily locked due to excessive failed attempts. Please try again later.",
+        },
+        429
+      );
+    }
+
+    const isValid = await verifyPassword(password, user.passwordHash);
+    if (!isValid) {
+      const attempts = (user.failedLoginAttempts || 0) + 1;
+      const lockedUntil = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
+
+      await db
+        .update(schema.users)
+        .set({
+          failedLoginAttempts: attempts,
+          lockedUntil,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.users.id, user.id));
+
+      return c.json({ error: "Invalid email or password" }, 401);
+    }
+
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await db
+        .update(schema.users)
+        .set({
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.users.id, user.id));
+    }
+
+    const token = await signJwt({
+      userId: user.id,
+      email: user.email,
+      role: user.role as UserRole,
+      jti: crypto.randomUUID(),
+    });
+
+    setCookie(c, "auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 60 * 60 * 8,
+    });
+
+    return c.json({
+      ok: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } catch (err) {
+    console.error("[AUTH_LOGIN_ERROR]", err);
+    return c.json({ error: "Authentication service failure" }, 500);
+  }
+});
+
+app.post("/auth/logout", (c) => {
+  deleteCookie(c, "auth_token", { path: "/" });
+  return c.json({ ok: true, message: "Logged out successfully" });
+});
+
 app.get("/auth/me", async (c) => {
   try {
     const user = await requireRole(c, ["admin", "teacher", "student"]);
