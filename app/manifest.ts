@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Ethical Hacking Project — Semester 5",
-    short_name: "EHP",
+    name: "Apex University Enterprise ERP",
+    short_name: "ApexERP",
     description:
-      "Semester 5 workspace for the Ethical Hacking course. Next.js + Tailwind + shadcn + TypeScript + Turso.",
+      "Enterprise Resource Planning System for Admissions and Academic Management.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
+    background_color: "#0a0a0a",
     theme_color: "#0a0a0a",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },

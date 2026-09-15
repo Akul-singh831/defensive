@@ -9,7 +9,7 @@ import { verifyPassword } from "@/lib/auth/password";
 import type { UserRole } from "@/lib/auth/roles";
 import { db } from "@/lib/turso";
 import * as schema from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 
 // Admissions
@@ -60,8 +60,8 @@ app.use(
 );
 
 // Safe root responses
-app.get("/", (c) => c.text("Ethical Hacking Project - Defensive ERP API"));
-app.get("/hello", (c) => c.json({ message: "Defensive API operational" }));
+app.get("/", (c) => c.text("Apex University ERP API"));
+app.get("/hello", (c) => c.json({ message: "Apex University ERP API operational" }));
 
 // ===== AUTH / IDENTITY =====
 const loginRequestSchema = z.object({
@@ -962,6 +962,226 @@ app.get("/academic/metrics", async (c) => {
       return c.json({ error: error.message }, error.status);
     }
     return c.json({ error: "Failed to fetch academic metrics" }, 500);
+  }
+});
+
+// ===== CONVENIENCE ENTERPRISE LIST ENDPOINTS =====
+
+// 1. Enrolled students registry
+app.get("/admissions/enrolled-students", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher", "student"]);
+    const list = await db
+      .select({
+        id: schema.enrolledStudents.id,
+        userId: schema.enrolledStudents.userId,
+        applicationId: schema.enrolledStudents.applicationId,
+        enrollmentNumber: schema.enrolledStudents.enrollmentNumber,
+        enrollmentDate: schema.enrolledStudents.enrollmentDate,
+        program: schema.enrolledStudents.program,
+        batch: schema.enrolledStudents.batch,
+        rollNumber: schema.enrolledStudents.rollNumber,
+        isActive: schema.enrolledStudents.isActive,
+        createdAt: schema.enrolledStudents.createdAt,
+        email: schema.users.email,
+        firstName: schema.users.firstName,
+        lastName: schema.users.lastName,
+      })
+      .from(schema.enrolledStudents)
+      .leftJoin(schema.users, eq(schema.enrolledStudents.userId, schema.users.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch enrolled students" }, 500);
+  }
+});
+
+// 2. Audit logs (Admin only)
+app.get("/admissions/audit-logs", async (c) => {
+  try {
+    await requireRole(c, ["admin"]);
+    const logs = await db
+      .select()
+      .from(schema.auditLogs)
+      .orderBy(desc(schema.auditLogs.timestamp))
+      .limit(50);
+    return c.json({ ok: true, data: logs });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch audit logs" }, 500);
+  }
+});
+
+// 3. All Timetables
+app.get("/academic/all-timetables", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher", "student"]);
+    const list = await db
+      .select({
+        id: schema.timetables.id,
+        courseId: schema.timetables.courseId,
+        subjectId: schema.timetables.subjectId,
+        teacherId: schema.timetables.teacherId,
+        sectionCode: schema.timetables.sectionCode,
+        dayOfWeek: schema.timetables.dayOfWeek,
+        startTime: schema.timetables.startTime,
+        endTime: schema.timetables.endTime,
+        room: schema.timetables.room,
+        academicYear: schema.timetables.academicYear,
+        semester: schema.timetables.semester,
+        isPublished: schema.timetables.isPublished,
+        courseCode: schema.courses.code,
+        courseName: schema.courses.name,
+      })
+      .from(schema.timetables)
+      .leftJoin(schema.courses, eq(schema.timetables.courseId, schema.courses.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch timetables" }, 500);
+  }
+});
+
+// 4. All Course Assignments
+app.get("/academic/all-assignments", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher"]);
+    const list = await db
+      .select({
+        id: schema.courseAssignments.id,
+        courseId: schema.courseAssignments.courseId,
+        teacherId: schema.courseAssignments.teacherId,
+        sectionCode: schema.courseAssignments.sectionCode,
+        academicYear: schema.courseAssignments.academicYear,
+        semester: schema.courseAssignments.semester,
+        courseCode: schema.courses.code,
+        courseName: schema.courses.name,
+        teacherEmail: schema.users.email,
+        teacherFirstName: schema.users.firstName,
+        teacherLastName: schema.users.lastName,
+      })
+      .from(schema.courseAssignments)
+      .leftJoin(schema.courses, eq(schema.courseAssignments.courseId, schema.courses.id))
+      .leftJoin(schema.users, eq(schema.courseAssignments.teacherId, schema.users.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch assignments" }, 500);
+  }
+});
+
+// 5. All Internal Marks
+app.get("/academic/all-marks", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher", "student"]);
+    const list = await db
+      .select({
+        id: schema.internalMarks.id,
+        assessmentId: schema.internalMarks.assessmentId,
+        studentId: schema.internalMarks.studentId,
+        courseId: schema.internalMarks.courseId,
+        assessmentType: schema.internalMarks.assessmentType,
+        assessmentName: schema.internalMarks.assessmentName,
+        maxMarks: schema.internalMarks.maxMarks,
+        marksObtained: schema.internalMarks.marksObtained,
+        grade: schema.internalMarks.grade,
+        feedbackNotes: schema.internalMarks.feedbackNotes,
+        recordedBy: schema.internalMarks.recordedBy,
+        recordedAt: schema.internalMarks.recordedAt,
+        status: schema.internalMarks.status,
+        courseCode: schema.courses.code,
+        courseName: schema.courses.name,
+        studentEmail: schema.users.email,
+        studentFirstName: schema.users.firstName,
+        studentLastName: schema.users.lastName,
+      })
+      .from(schema.internalMarks)
+      .leftJoin(schema.courses, eq(schema.internalMarks.courseId, schema.courses.id))
+      .leftJoin(schema.users, eq(schema.internalMarks.studentId, schema.users.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch marks" }, 500);
+  }
+});
+
+// 6. All Attendance Records
+app.get("/academic/all-attendance", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher", "student"]);
+    const list = await db
+      .select({
+        id: schema.attendanceRecords.id,
+        studentId: schema.attendanceRecords.studentId,
+        courseId: schema.attendanceRecords.courseId,
+        classDate: schema.attendanceRecords.classDate,
+        status: schema.attendanceRecords.status,
+        remarks: schema.attendanceRecords.remarks,
+        recordedBy: schema.attendanceRecords.recordedBy,
+        recordedAt: schema.attendanceRecords.recordedAt,
+        courseCode: schema.courses.code,
+        courseName: schema.courses.name,
+        studentEmail: schema.users.email,
+        studentFirstName: schema.users.firstName,
+        studentLastName: schema.users.lastName,
+      })
+      .from(schema.attendanceRecords)
+      .leftJoin(schema.courses, eq(schema.attendanceRecords.courseId, schema.courses.id))
+      .leftJoin(schema.users, eq(schema.attendanceRecords.studentId, schema.users.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch attendance" }, 500);
+  }
+});
+
+// 7. All Syllabi
+app.get("/academic/all-syllabi", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher", "student"]);
+    const list = await db
+      .select({
+        id: schema.syllabi.id,
+        courseId: schema.syllabi.courseId,
+        subjectId: schema.syllabi.subjectId,
+        teacherId: schema.syllabi.teacherId,
+        content: schema.syllabi.content,
+        objectives: schema.syllabi.objectives,
+        textbooks: schema.syllabi.textbooks,
+        assessmentMethod: schema.syllabi.assessmentMethod,
+        courseCode: schema.courses.code,
+        courseName: schema.courses.name,
+      })
+      .from(schema.syllabi)
+      .leftJoin(schema.courses, eq(schema.syllabi.courseId, schema.courses.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch syllabi" }, 500);
+  }
+});
+
+// 8. All Subjects
+app.get("/academic/all-subjects", async (c) => {
+  try {
+    await requireRole(c, ["admin", "teacher", "student"]);
+    const list = await db
+      .select({
+        id: schema.subjects.id,
+        courseId: schema.subjects.courseId,
+        code: schema.subjects.code,
+        name: schema.subjects.name,
+        credits: schema.subjects.credits,
+        description: schema.subjects.description,
+        courseCode: schema.courses.code,
+        courseName: schema.courses.name,
+      })
+      .from(schema.subjects)
+      .leftJoin(schema.courses, eq(schema.subjects.courseId, schema.courses.id));
+    return c.json({ ok: true, data: list });
+  } catch (error) {
+    if (error instanceof AuthError) return c.json({ error: error.message }, error.status);
+    return c.json({ error: "Failed to fetch subjects" }, 500);
   }
 });
 

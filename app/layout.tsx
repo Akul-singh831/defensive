@@ -22,11 +22,11 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const SITE_URL = "https://ethical-hacking-project.vercel.app";
-const SITE_NAME = "Ethical Hacking Project";
-const TITLE = "Ethical Hacking Project — Semester 5 Workspace";
+const SITE_URL = "https://university-erp.internal";
+const SITE_NAME = "Apex University ERP";
+const TITLE = "Apex University Enterprise ERP";
 const DESCRIPTION =
-  "Semester 5 workspace for the Ethical Hacking course. Shared Next.js + Tailwind + shadcn + TypeScript + Turso stack. Each team builds in isolation — branch per team, one schema, zero conflicts.";
+  "Integrated Enterprise Resource Planning System for Admissions, Enrollment, Curriculum, and Academic Management.";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} — Semester 5 Workspace. Next.js • Tailwind • shadcn • TypeScript • Turso`,
+        alt: `${SITE_NAME} - Enterprise Campus Workspace`,
       },
     ],
   },

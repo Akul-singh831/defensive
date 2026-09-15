@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 // Single schema reused client (zodResolver) + server (safeParse)
-// Keep it random/educational — not tied to any team's table
+// Keep it random/educational - not tied to any team's table
 export const demoPostSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string("Enter a valid email address"),
